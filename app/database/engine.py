@@ -52,7 +52,7 @@ def add_item(product_id, name, price=None, stock=None):
     conn.close()
     print("item cadastrado com sucesso")
 
-#função para procurar itens no banco de dados
+# Listar todos os produtos (não tem filtro)
 def get_products_with_items():
     conn = get_connection()
     cursor = conn.cursor()
@@ -75,7 +75,7 @@ def get_products_with_items():
 
     return rows
 
-# A DEFINIR
+# buscar produtos no banco (tem filtro)
 def search_products(text=""):
     conn = get_connection()
     cursor = conn.cursor()

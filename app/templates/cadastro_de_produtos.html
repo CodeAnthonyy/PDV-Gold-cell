@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Cadastrar Produto / Item</h2>
+
+<div class="form-box">
+
+    <!-- Novo Produto -->
+    <h3>Nova Categoria</h3>
+
+    <form method="post" action="/produtos/novo">
+
+        <input 
+            type="text" 
+            name="product_name"
+            placeholder="Nome do produto"
+            required
+        >
+
+        <button type="submit" name="action" value="product">
+            Cadastrar Produto
+        </button>
+
+    </form>
+
+    <hr>
+
+    <!-- Novo Item -->
+    <h3>Adicionar Item</h3>
+
+    <form method="post" action="/produtos/novo">
+
+        <select name="product_id" required>
+
+            <option value="">Selecione a Categoria</option>
+
+            {% for p in products %}
+                <option value="{{ p[0] }}">{{ p[1] }}</option>
+            {% endfor %}
+
+        </select>
+
+        <input 
+            type="text"
+            name="item_name"
+            placeholder="Nome do item"
+            required
+        >
+
+        <input 
+            type="number"
+            step="0.01"
+            name="price"
+            placeholder="Preço"
+        >
+
+        <input 
+            type="number"
+            name="stock"
+            placeholder="Estoque"
+        >
+
+        <button type="submit" name="action" value="item">
+            Cadastrar Item
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
