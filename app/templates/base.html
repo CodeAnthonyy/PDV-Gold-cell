@@ -7,28 +7,29 @@
 </head>
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <!-- Barra lateral -->
-        <aside class="sidebar">
-            <h1 class="logo">Gold Cell</h1>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h1 class="logo">Gold Cell</h1>
 
-            <!-- Área para você colocar as funcionalidades -->
-            <nav class="menu">
-                <button>Vendas</button>
-                <button>Produtos</button>
-                <button>Clientes</button>
-                <button>Relatórios</button>
-            </nav>
-        </aside>
+        <nav class="menu">
+            <a href="/vendas"><button>Vendas</button></a>
+            <a href="/produtos"><button>Produtos</button></a>
+            <a href="/clientes"><button>Clientes</button></a>
+            <a href="/relatorios"><button>Relatórios</button></a>
+        </nav>
+    </aside>
 
-        <!-- Área principal -->
-        <main class="main-content">
-            <h2>Área Principal</h2>
-            <p>Aqui vai o conteúdo do PDV (venda, carrinho, etc).</p>
-        </main>
+    <!-- Conteúdo dinâmico -->
+    <main class="main-content">
 
-    </div>
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+</div>
 
 </body>
 </html>

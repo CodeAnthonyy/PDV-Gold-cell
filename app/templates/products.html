@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Produtos</h2>
+
+<div class="products-header">
+
+    <!-- Busca -->
+    <form method="get" class="search-box">
+
+        <input 
+            type="text" 
+            name="search" 
+            placeholder="Pesquisar produto..."
+            value="{{ request.args.get('search','') }}"
+        >
+
+        <button type="submit">Buscar</button>
+
+    </form>
+
+    <!-- Novo -->
+    <a href="/produtos/novo">
+        <button class="btn-add">+ Novo</button>
+    </a>
+
+</div>
+
+<!-- Tabela -->
+
+<table class="products-table">
+
+    <tr>
+        <th>Categoria</th>
+        <th>Item</th>
+        <th>Preço</th>
+        <th>Estoque</th>
+    </tr>
+
+    {% for row in data %}
+
+    <tr>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[3] or "-" }}</td>
+        <td>R$ {{ row[4] or "0.00" }}</td>
+        <td>{{ row[5] or "0" }}</td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endblock %}
+
