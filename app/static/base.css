@@ -186,3 +186,54 @@ body {
     margin: 25px 0;
     border: 1px solid #333;
 }
+/* teste opcional botao editar */
+
+
+.actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-edit {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+
+/* botão voltar da parte de cadastrar produtos */
+
+.btn-voltar-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.btn-voltar {
+    background: #FFD700; /* Amarelo igual */
+    color: black;
+    border: none;
+    padding: 12px 30px; /* Deixa maior */
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 220px;
+    transition: 0.3s;
+}
+
+.btn-voltar:hover {
+    background: #e6c200;
+}
