@@ -211,3 +211,29 @@ body {
     cursor: pointer;
     border-radius: 4px;
 }
+
+
+/* botão voltar da parte de cadastrar produtos */
+
+.btn-voltar-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.btn-voltar {
+    background: #FFD700; /* Amarelo igual */
+    color: black;
+    border: none;
+    padding: 12px 30px; /* Deixa maior */
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 220px;
+    transition: 0.3s;
+}
+
+.btn-voltar:hover {
+    background: #e6c200;
+}
