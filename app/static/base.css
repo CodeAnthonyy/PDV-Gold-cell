@@ -186,3 +186,28 @@ body {
     margin: 25px 0;
     border: 1px solid #333;
 }
+/* teste opcional botao editar */
+
+
+.actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-edit {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}

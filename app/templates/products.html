@@ -36,20 +36,32 @@
         <th>Item</th>
         <th>Preço</th>
         <th>Estoque</th>
+        <th>editar</th>
     </tr>
 
     {% for row in data %}
+<!-- ultima alteração -->
+<tr>
+    <td>{{ row[1] }}</td>
+    <td>{{ row[3] or "-" }}</td>
+    <td>R$ {{ row[4] or "0.00" }}</td>
+    <td>{{ row[5] or "0" }}</td>
 
-    <tr>
-        <td>{{ row[1] }}</td>
-        <td>{{ row[3] or "-" }}</td>
-        <td>R$ {{ row[4] or "0.00" }}</td>
-        <td>{{ row[5] or "0" }}</td>
-    </tr>
+    <!-- Ações -->
+    <td class="actions">
 
-    {% endfor %}
+        <!-- Editar -->
+        <a href="/produtos/editar/{{ row[0] }}">
+            <button class="btn-edit">Editar</button>
+        </a>
 
-</table>
+        <!-- Remover -->
+        <a href="/produtos/remover/{{ row[0] }}"
+           onclick="return confirm('Deseja realmente remover este item?')">
+            <button class="btn-delete">Remover</button>
+        </a>
 
-{% endblock %}
+    </td>
+</tr>
 
+{% endfor %}
