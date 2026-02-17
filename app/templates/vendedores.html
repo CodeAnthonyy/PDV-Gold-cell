@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendedores.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2>Vendedores</h2>
+
+<div class="products-header">
+
+    <!-- Busca -->
+    <form method="get" action="/vendas" class="search-box">
+
+        <input 
+            type="text" 
+            name="search" 
+            placeholder="Pesquisar vendedor..."
+            value="{{ request.args.get('search','') }}"
+        >
+
+        <button type="submit">Buscar</button>
+
+    </form>
+
+    <!-- Novo -->
+    <a href="/vendedores/novo">
+        <button class="btn-add">+ Novo</button>
+    </a>
+
+</div>
+
+<!-- Tabela -->
+
+<table class="products-table">
+
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Ações</th>
+    </tr>
+
+    {% for seller in data %}
+    <tr>
+        <td>{{ seller[0] }}</td>
+        <td>{{ seller[1] }}</td>
+        <td>{{ seller[2] or "-" }}</td>
+
+        <!-- Ações -->
+        <td class="actions">
+
+            <!-- Editar -->
+            <a href="/vendedores/novo?id={{ seller[0] }}">
+                <button class="btn-edit">Editar</button>
+            </a>
+
+            <!-- Remover -->
+            <a href="/vendedores/remover/{{ seller[0] }}"
+               onclick="return confirm('Deseja realmente remover este vendedor?')">
+                <button class="btn-delete">Remover</button>
+            </a>
+
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endblock %}

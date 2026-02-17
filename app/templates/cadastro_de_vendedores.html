@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='cadastro_de_vendedores.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2>{% if seller %}Editar Vendedor{% else %}Cadastrar Vendedor{% endif %}</h2>
+
+<div class="form-box">
+
+    <h3>{% if seller %}Editar Dados do Vendedor{% else %}Novo Vendedor{% endif %}</h3>
+
+    <form method="post" action="/vendedores/novo">
+
+        {% if seller %}
+            <input type="hidden" name="seller_id" value="{{ seller[0] }}">
+        {% endif %}
+
+        <input 
+            type="text" 
+            name="seller_name"
+            placeholder="Nome do vendedor"
+            value="{% if seller %}{{ seller[1] }}{% endif %}"
+            required
+        >
+
+        <input 
+            type="tel"
+            name="phone"
+            placeholder="Telefone (opcional)"
+            value="{% if seller %}{{ seller[2] or '' }}{% endif %}"
+        >
+
+        <button type="submit" name="action" value="{% if seller %}editar{% else %}novo{% endif %}">
+            {% if seller %}Atualizar Vendedor{% else %}Cadastrar Vendedor{% endif %}
+        </button>
+
+    </form>
+
+</div>
+
+<!-- Botão Voltar -->
+<a href="/vendedores" class="btn-voltar-container">
+    <button class="btn-voltar">
+        Voltar
+    </button>
+</a>
+
+{% endblock %}

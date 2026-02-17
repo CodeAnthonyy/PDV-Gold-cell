@@ -22,3 +22,13 @@ def create_tables(cursor):
         FOREIGN KEY (product_id) REFERENCES products(id)
     )
     """)
+
+    # Tabela de vendedores
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS sellers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)

@@ -98,3 +98,94 @@ def search_products(text=""):
     conn.close()
 
     return rows
+
+# -------- VENDEDORES --------
+
+# Adiciona vendedor ao banco
+def add_seller(name, phone=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+    INSERT INTO sellers (name, phone)
+    VALUES (?, ?)
+    """, (name, phone))
+
+    conn.commit()
+    conn.close()
+    print("vendedor cadastrado com sucesso")
+
+# Lista todos os vendedores
+def get_all_sellers():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name, phone
+        FROM sellers
+        ORDER BY name
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
+
+# Buscar vendedor por ID
+def get_seller_by_id(seller_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name, phone
+        FROM sellers
+        WHERE id = ?
+    """, (seller_id,))
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return row
+
+# Atualizar vendedor
+def update_seller(seller_id, name, phone=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE sellers
+    SET name = ?, phone = ?
+    WHERE id = ?
+    """, (name, phone, seller_id))
+
+    conn.commit()
+    conn.close()
+    print("vendedor atualizado com sucesso")
+
+# Deletar vendedor
+def delete_seller(seller_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM sellers WHERE id = ?", (seller_id,))
+
+    conn.commit()
+    conn.close()
+    print("vendedor deletado com sucesso")
+
+# Buscar vendedores por texto
+def search_sellers(text=""):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name, phone
+        FROM sellers
+        WHERE name LIKE ?
+        ORDER BY name
+    """, (f"%{text}%",))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
