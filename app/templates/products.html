@@ -16,7 +16,7 @@
         <input 
             type="text" 
             name="search" 
-            placeholder="Pesquisar produto..."
+            placeholder="Pesquisar categoria ou item..."
             value="{{ request.args.get('search','') }}"
         >
 
@@ -40,35 +40,74 @@
         <th>Item</th>
         <th>Preço</th>
         <th>Estoque</th>
-        <th>Editar</th>
+        <th>Ações</th>
     </tr>
 
-    {% for row in data %}
-<!-- ultima alteração -->
-<tr>
-    <td>{{ row[1] }}</td>
-    <td>{{ row[3] or "-" }}</td>
-    <td>R$ {{ row[4] or "0.00" }}</td>
-    <td>{{ row[5] or "0" }}</td>
+    {% for product_id, product_data in data.items() %}
+        <!-- Linha da categoria -->
+        {% if product_data['items']|length > 0 %}
+            <tr class="category-row">
+                <td style="background: #f0f0f0; font-weight: bold;">
+                    {{ product_data['name'] }}
+                </td>
+                <td colspan="4" style="background: #f0f0f0; text-align: right;">
+                    <div class="actions">
+                        <a href="/categoria/editar/{{ product_id }}">
+                            <button class="btn-edit" style="font-size: 12px;">✏️ Editar</button>
+                        </a>
+                        <a href="/categoria/remover/{{ product_id }}"
+                           onclick="return confirm('Deseja realmente remover esta categoria?')">
+                            <button class="btn-delete" style="font-size: 12px;">🗑️ Remover</button>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% endif %}
 
-    <!-- Ações -->
-    <td class="actions">
+        <!-- Linhas dos itens -->
+        {% for item in product_data['items'] %}
+            <tr>
+                <td></td>
+                <td>{{ item['name'] }}</td>
+                <td>R$ {{ "%.2f"|format(item['price']) if item['price'] else "0.00" }}</td>
+                <td>{{ item['stock'] or "0" }}</td>
 
-        <!-- Editar -->
-        <a href="/produtos/editar/{{ row[0] }}">
-            <button class="btn-edit">Editar</button>
-        </a>
+                <!-- Ações -->
+                <td class="actions">
+                    <a href="/produtos/editar/{{ item['id'] }}">
+                        <button class="btn-edit">Editar</button>
+                    </a>
+                    <a href="/produtos/remover/{{ item['id'] }}"
+                       onclick="return confirm('Deseja realmente remover este item?')">
+                        <button class="btn-delete">Remover</button>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
 
-        <!-- Remover -->
-        <a href="/produtos/remover/{{ row[0] }}"
-           onclick="return confirm('Deseja realmente remover este item?')">
-            <button class="btn-delete">Remover</button>
-        </a>
-
-    </td>
-</tr>
-
-{% endfor %}
+        <!-- Categoria sem itens -->
+        {% if product_data['items']|length == 0 %}
+            <tr class="category-row">
+                <td style="background: #f0f0f0; font-weight: bold;">
+                    {{ product_data['name'] }}
+                </td>
+                <td colspan="3" style="background: #f0f0f0; text-align: center; color: #999;">
+                    Sem itens cadastrados
+                </td>
+                <td style="background: #f0f0f0;">
+                    <div class="actions">
+                        <a href="/categoria/editar/{{ product_id }}">
+                            <button class="btn-edit" style="font-size: 12px;">✏️ Editar</button>
+                        </a>
+                        <a href="/categoria/remover/{{ product_id }}"
+                           onclick="return confirm('Deseja realmente remover esta categoria?')">
+                            <button class="btn-delete" style="font-size: 12px;">🗑️ Remover</button>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% endif %}
+    {% endfor %}
 
 </table>
 

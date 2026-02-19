@@ -6,6 +6,133 @@
 
 {% block content %}
 
+<!-- Editar Item -->
+{% if editing and item %}
+
+<h2>Editar Item</h2>
+
+<div class="form-box">
+
+    <form method="post" action="/produtos/editar/{{ item[0] }}">
+
+        <label style="color: #ffd700; font-weight: bold;">Categoria</label>
+        <div class="search-category-container">
+            <input 
+                type="text"
+                id="searchCategoryEdit"
+                placeholder="Pesquisar categoria..."
+                autocomplete="off"
+            >
+            <input type="hidden" id="product_id_edit" name="product_id" value="{{ item[1] }}" required>
+            
+            <div id="categoryListEdit" class="category-list" style="display: none;">
+                {% for p in products %}
+                    <div class="category-item-edit" data-id="{{ p[0] }}" data-name="{{ p[1] }}">
+                        {{ p[1] }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <input 
+            type="text"
+            name="item_name"
+            placeholder="Nome do item"
+            value="{{ item[2] }}"
+            required
+        >
+
+        <input 
+            type="number"
+            step="0.01"
+            name="price"
+            placeholder="Preço"
+            value="{{ item[3] or '' }}"
+        >
+
+        <input 
+            type="number"
+            name="stock"
+            placeholder="Estoque"
+            value="{{ item[4] or '' }}"
+        >
+
+        <button type="submit">Salvar Alterações</button>
+
+    </form>
+
+</div>
+
+<a href="/produtos" class="btn-voltar-container">
+    <button class="btn-voltar">Voltar</button>
+</a>
+
+<script>
+(function() {
+    const searchInput = document.getElementById('searchCategoryEdit');
+    const categoryList = document.getElementById('categoryListEdit');
+    const productIdInput = document.getElementById('product_id_edit');
+    const categoryItems = document.querySelectorAll('.category-item-edit');
+
+    // Definir categoria padrão
+    window.addEventListener('load', () => {
+        let currentId = productIdInput.value;
+        categoryItems.forEach(item => {
+            if (item.getAttribute('data-id') == currentId) {
+                searchInput.value = item.getAttribute('data-name');
+            }
+        });
+    });
+
+    // Mostrar lista ao focar
+    searchInput.addEventListener('focus', function() {
+        categoryList.style.display = 'block';
+        filterCategories();
+    });
+
+    // Filtrar categorias conforme digita
+    searchInput.addEventListener('input', filterCategories);
+
+    // Selecionar categoria
+    categoryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+            searchInput.value = name;
+            productIdInput.value = id;
+            categoryList.style.display = 'none';
+        });
+    });
+
+    // Fechar lista ao clicar fora
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.search-category-container')) {
+            categoryList.style.display = 'none';
+        }
+    });
+
+    function filterCategories() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let hasVisibleItems = false;
+
+        categoryItems.forEach(item => {
+            const name = item.getAttribute('data-name').toLowerCase();
+            if (name.includes(searchTerm)) {
+                item.style.display = 'block';
+                hasVisibleItems = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        categoryList.style.display = hasVisibleItems ? 'block' : 'none';
+    }
+})();
+</script>
+
+<!-- Criar novo produto/item -->
+{% else %}
+
 <h2>Cadastrar Produto / Item</h2>
 
 <div class="form-box">
@@ -35,15 +162,23 @@
 
     <form method="post" action="/produtos/novo">
 
-        <select name="product_id" required>
-
-            <option value="">Selecione a Categoria</option>
-
-            {% for p in products %}
-                <option value="{{ p[0] }}">{{ p[1] }}</option>
-            {% endfor %}
-
-        </select>
+        <div class="search-category-container">
+            <input 
+                type="text"
+                id="searchCategoryNew"
+                placeholder="Pesquisar categoria..."
+                autocomplete="off"
+            >
+            <input type="hidden" id="product_id_new" name="product_id" required>
+            
+            <div id="categoryListNew" class="category-list" style="display: none;">
+                {% for p in products %}
+                    <div class="category-item-new" data-id="{{ p[0] }}" data-name="{{ p[1] }}">
+                        {{ p[1] }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
 
         <input 
             type="text"
@@ -71,6 +206,59 @@
 
     </form>
 
+    <script>
+    (function() {
+        const searchInput = document.getElementById('searchCategoryNew');
+        const categoryList = document.getElementById('categoryListNew');
+        const productIdInput = document.getElementById('product_id_new');
+        const categoryItems = document.querySelectorAll('.category-item-new');
+
+        // Mostrar lista ao focar
+        searchInput.addEventListener('focus', function() {
+            categoryList.style.display = 'block';
+            filterCategories();
+        });
+
+        // Filtrar categorias conforme digita
+        searchInput.addEventListener('input', filterCategories);
+
+        // Selecionar categoria
+        categoryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                searchInput.value = name;
+                productIdInput.value = id;
+                categoryList.style.display = 'none';
+            });
+        });
+
+        // Fechar lista ao clicar fora
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.search-category-container')) {
+                categoryList.style.display = 'none';
+            }
+        });
+
+        function filterCategories() {
+            const searchTerm = searchInput.value.toLowerCase();
+            let hasVisibleItems = false;
+
+            categoryItems.forEach(item => {
+                const name = item.getAttribute('data-name').toLowerCase();
+                if (name.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    hasVisibleItems = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            categoryList.style.display = hasVisibleItems ? 'block' : 'none';
+        }
+    })();
+    </script>
+
 </div>
 
 <!-- Botão Voltar -->
@@ -79,5 +267,7 @@
         Voltar
     </button>
 </a>
+
+{% endif %}
 
 {% endblock %}

@@ -71,6 +71,21 @@
     background: #f0f0f0;
 }
 
+/* Célula de categoria */
+.products-table td:first-child {
+    background: #f9f9f9;
+    font-weight: bold;
+}
+
+/* Linha de categoria */
+.category-row {
+    border-top: 2px solid #ddd;
+}
+
+.category-row:hover {
+    background: #f0f0f0 !important;
+}
+
 /* Ações */
 
 .actions {
@@ -85,6 +100,11 @@
     padding: 5px 8px;
     cursor: pointer;
     border-radius: 4px;
+    font-size: 13px;
+}
+
+.btn-edit:hover {
+    background: #2980b9;
 }
 
 .btn-delete {
@@ -94,4 +114,9 @@
     padding: 5px 8px;
     cursor: pointer;
     border-radius: 4px;
+    font-size: 13px;
+}
+
+.btn-delete:hover {
+    background: #c0392b;
 }
