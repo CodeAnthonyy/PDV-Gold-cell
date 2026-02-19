@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='cadastro_de_produtos.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2>Editar Categoria</h2>
+
+<div class="form-box">
+
+    <form method="post" action="/categoria/editar/{{ product[0] }}">
+
+        <input 
+            type="text"
+            name="category_name"
+            placeholder="Nome da categoria"
+            value="{{ product[1] }}"
+            required
+        >
+
+        <button type="submit">Salvar Alterações</button>
+
+    </form>
+
+</div>
+
+<a href="/produtos" class="btn-voltar-container">
+    <button class="btn-voltar">Voltar</button>
+</a>
+
+{% endblock %}

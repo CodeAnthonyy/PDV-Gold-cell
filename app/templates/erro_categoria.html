@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='cadastro_de_produtos.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="error-box">
+    <h2>❌ Ação Não Permitida</h2>
+    <p>{{ message }}</p>
+    
+    <p style="margin-top: 20px; font-size: 14px; color: #999;">
+        <strong>O que fazer:</strong>
+        <ul>
+            <li>Remova os itens relacionados a esta categoria</li>
+            <li>Ou altere os itens para outra categoria</li>
+        </ul>
+    </p>
+</div>
+
+<a href="/produtos" class="btn-voltar-container">
+    <button class="btn-voltar">OK</button>
+</a>
+
+<style>
+    .error-box {
+        background: #1e1e1e;
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        border-left: 4px solid #e74c3c;
+        color: #fff;
+    }
+
+    .error-box h2 {
+        color: #e74c3c;
+        margin-bottom: 15px;
+    }
+
+    .error-box p {
+        line-height: 1.6;
+    }
+
+    .error-box ul {
+        margin: 10px 0 0 20px;
+        line-height: 1.8;
+    }
+</style>
+
+{% endblock %}
