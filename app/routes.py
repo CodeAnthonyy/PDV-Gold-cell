@@ -21,7 +21,8 @@ from database.engine import (
     get_product_by_id,
     update_product,
     delete_product,
-    product_has_items
+    product_has_items,
+    get_all_products
 )
 
 # Tela inicial
@@ -77,8 +78,8 @@ def novo_produto():
         return redirect("/produtos")
 
 
-    # GET → carregar lista
-    products = get_products_with_items()
+    # GET → carregar lista de categorias únicas
+    products = get_all_products()
 
     return render_template(
         "cadastro_de_produtos.html",
@@ -99,9 +100,9 @@ def editar_produto(item_id):
         update_item(item_id, name, price, stock, product_id)
         return redirect("/produtos")
     
-    # GET → carregar item para edição
+    # GET → carregar item para edição e lista de categorias únicas
     item = get_item_by_id(item_id)
-    products = get_products_with_items()
+    products = get_all_products()
     
     return render_template(
         "cadastro_de_produtos.html",
@@ -158,8 +159,15 @@ def remover_produto(item_id):
 # Lista de vendedores
 @app.route("/vendedores")
 def list_sellers():
+    # Support optional edit via ?id=<seller_id> so the form can be shown on the same page
+    seller_id = request.args.get("id")
+    seller = None
+
+    if seller_id:
+        seller = get_seller_by_id(seller_id)
+
     data = get_all_sellers()
-    return render_template("vendedores.html", data=data)
+    return render_template("vendedores.html", data=data, seller=seller)
 
 
 # Busca de vendedores

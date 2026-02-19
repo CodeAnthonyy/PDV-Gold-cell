@@ -23,29 +23,29 @@ def init_db():
     conn.commit()
     conn.close()
 
-#adiciona produtos ao banco de dados
+#adiciona categorias ao banco de dados
 def add_product (name):
     conn = get_connection()
     cursor = conn.cursor()
     
     cursor.execute("""
 
-    INSERT INTO products (name)
+    INSERT INTO categorias (name)
     VALUES (?)
    """, (name,))
 
     conn.commit()
     conn.close()
-    print ("produto cadastrado com sucesso")
+    print ("categoria cadastrada com sucesso")
 
-# Buscar produto por ID
+# Buscar categoria por ID
 def get_product_by_id(product_id):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT id, name
-        FROM products
+        FROM categorias
         WHERE id = ?
     """, (product_id,))
 
@@ -54,13 +54,13 @@ def get_product_by_id(product_id):
 
     return row
 
-# Atualizar produto (categoria)
+# Atualizar categoria
 def update_product(product_id, name):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-    UPDATE products
+    UPDATE categorias
     SET name = ?
     WHERE id = ?
     """, (name, product_id))
@@ -84,7 +84,7 @@ def product_has_items(product_id):
 
     return count > 0
 
-# Deletar produto (categoria) - só se não tiver itens
+# Deletar categoria - só se não tiver itens
 def delete_product(product_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -101,7 +101,7 @@ def delete_product(product_id):
         conn.close()
         return False  # Não pode deletar
 
-    cursor.execute("DELETE FROM products WHERE id = ?", (product_id,))
+    cursor.execute("DELETE FROM categorias WHERE id = ?", (product_id,))
 
     conn.commit()
     conn.close()
@@ -171,7 +171,23 @@ def delete_item(item_id):
     conn.close()
     print("item deletado com sucesso")
 
-# Listar todos os produtos (não tem filtro)
+# Listar apenas as categorias (sem duplicatas)
+def get_all_products():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM categorias
+        ORDER BY name
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
+
+# Listar todas as categorias com itens (não tem filtro)
 def get_products_with_items():
     conn = get_connection()
     cursor = conn.cursor()
@@ -184,7 +200,7 @@ def get_products_with_items():
             i.name AS item_name,
             i.price,
             i.stock
-        FROM products p
+        FROM categorias p
         LEFT JOIN items i ON p.id = i.product_id
         ORDER BY p.id
     """)
@@ -194,7 +210,7 @@ def get_products_with_items():
 
     return rows
 
-# buscar produtos no banco (tem filtro)
+# buscar categorias no banco (tem filtro)
 def search_products(text=""):
     conn = get_connection()
     cursor = conn.cursor()
@@ -207,7 +223,7 @@ def search_products(text=""):
             i.name,
             i.price,
             i.stock
-        FROM products p
+        FROM categorias p
         LEFT JOIN items i ON p.id = i.product_id
         WHERE p.name LIKE ?
         ORDER BY p.id
@@ -309,7 +325,7 @@ def search_sellers(text=""):
 
     return rows
 
-# Retorna produtos agrupados com seus itens
+# Retorna categorias agrupadas com seus itens
 def get_products_grouped():
     conn = get_connection()
     cursor = conn.cursor()
@@ -322,7 +338,7 @@ def get_products_grouped():
             i.name AS item_name,
             i.price,
             i.stock
-        FROM products p
+        FROM categorias p
         LEFT JOIN items i ON p.id = i.product_id
         ORDER BY p.id, i.id
     """)
@@ -352,7 +368,7 @@ def get_products_grouped():
     
     return grouped
 
-# Buscar produtos agrupados com filtro
+# Buscar categorias agrupadas com filtro
 def search_products_grouped(text=""):
     conn = get_connection()
     cursor = conn.cursor()
@@ -365,7 +381,7 @@ def search_products_grouped(text=""):
             i.name AS item_name,
             i.price,
             i.stock
-        FROM products p
+        FROM categorias p
         LEFT JOIN items i ON p.id = i.product_id
         WHERE p.name LIKE ? OR i.name LIKE ?
         ORDER BY p.id, i.id

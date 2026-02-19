@@ -56,6 +56,35 @@
     margin-top: 20px;
 }
 
+/* Left-align the embedded form when using .left-form */
+.form-box.left-form {
+    margin: 0 0 20px 0;
+    max-width: 600px;
+}
+
+/* Two-column layout */
+.page-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.sidebar {
+    width: 360px;
+}
+
+.main {
+    flex: 1 1 auto;
+}
+
+/* When the .form-box is inside the sidebar, override centering and width */
+.sidebar .form-box {
+    margin: 0;
+    max-width: none;
+    width: 100%;
+    box-shadow: 0 0 12px rgba(0,0,0,0.35);
+}
+
 .products-table th,
 .products-table td {
     padding: 10px;

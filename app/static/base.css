@@ -38,6 +38,7 @@ body {
 }
 
 .menu button {
+    width: 100%;
     padding: 12px;
     background-color: #111;
     border: none;

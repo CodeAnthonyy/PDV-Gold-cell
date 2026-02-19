@@ -1,8 +1,8 @@
 def create_tables(cursor):
 
-    # Tabela de produtos
+    # Tabela de categorias
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS products (
+    CREATE TABLE IF NOT EXISTS categorias (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -19,7 +19,7 @@ def create_tables(cursor):
         stock INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-        FOREIGN KEY (product_id) REFERENCES products(id)
+        FOREIGN KEY (product_id) REFERENCES categorias(id)
     )
     """)
 
