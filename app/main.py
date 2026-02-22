@@ -4,10 +4,13 @@ from database.engine import add_product
 from database.engine import add_item
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-change-this-in-production'
 
 init_db()
 
-from routes import *
+# Importar e registrar rotas
+from routes import register_routes
+register_routes(app)
 
 
 if __name__ == "__main__":

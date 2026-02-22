@@ -1,11 +1,16 @@
 import sqlite3
 import os
+import bcrypt
+import json
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Nome do banco
 DB_PATH = os.path.join(BASE_DIR, "products.db")
+
+# Arquivo de credenciais
+CREDENTIALS_FILE = os.path.join(os.path.dirname(BASE_DIR), "credentials.json")
 
 
 def get_connection():
@@ -368,7 +373,144 @@ def get_products_grouped():
     
     return grouped
 
-# Buscar categorias agrupadas com filtro
+
+# -------- AUTENTICAÇÃO --------
+
+def hash_password(senha):
+    """Criptografa a senha com bcrypt"""
+    return bcrypt.hashpw(senha.encode(), bcrypt.gensalt())
+
+def verify_password(senha, hash_senha):
+    """Verifica se a senha corresponde ao hash"""
+    return bcrypt.checkpw(senha.encode(), hash_senha)
+
+def user_exists(usuario):
+    """Verifica se o usuário já existe"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE usuario = ?", (usuario,))
+    exists = cursor.fetchone()[0] > 0
+    conn.close()
+    
+    return exists
+
+def get_total_users():
+    """Retorna o total de usuários cadastrados"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT COUNT(*) FROM usuarios")
+    total = cursor.fetchone()[0]
+    conn.close()
+    
+    return total
+
+def register_user(usuario, senha):
+    """Registra um novo usuário
+    Primeiro usuário é admin, demais são usuarios"""
+    
+    if user_exists(usuario):
+        return {"status": False, "message": "Usuário já existe!"}
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Define cargo automaticamente
+    total = get_total_users()
+    cargo = "admin" if total == 0 else "usuario"
+    
+    # Criptografa a senha
+    hash_senha = hash_password(senha)
+    
+    try:
+        cursor.execute("""
+            INSERT INTO usuarios (usuario, senha, cargo)
+            VALUES (?, ?, ?)
+        """, (usuario, hash_senha, cargo))
+        
+        conn.commit()
+        
+        # Salva credencial em JSON
+        save_credentials(usuario, cargo)
+        
+        conn.close()
+        return {"status": True, "message": f"Usuário {cargo} criado com sucesso!", "cargo": cargo}
+    
+    except Exception as e:
+        conn.close()
+        return {"status": False, "message": f"Erro ao registrar: {str(e)}"}
+
+def login_user(usuario, senha):
+    """Autentica um usuário"""
+    
+    if not user_exists(usuario):
+        return {"status": False, "message": "Usuário não encontrado!"}
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT id, usuario, senha, cargo FROM usuarios WHERE usuario = ?", (usuario,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row is None:
+        return {"status": False, "message": "Usuário não encontrado!"}
+    
+    user_id, user_name, hash_senha, cargo = row
+    
+    # Verifica a senha
+    if verify_password(senha, hash_senha):
+        return {
+            "status": True,
+            "message": "Login realizado com sucesso!",
+            "id": user_id,
+            "usuario": user_name,
+            "cargo": cargo
+        }
+    else:
+        return {"status": False, "message": "Senha incorreta!"}
+
+def save_credentials(usuario, cargo):
+    """Salva as credenciais em um arquivo JSON"""
+    
+    credentials = {}
+    
+    # Se o arquivo já existe, carrega
+    if os.path.exists(CREDENTIALS_FILE):
+        try:
+            with open(CREDENTIALS_FILE, 'r', encoding='utf-8') as f:
+                credentials = json.load(f)
+        except:
+            credentials = {}
+    
+    # Adiciona novo usuário
+    if "usuarios" not in credentials:
+        credentials["usuarios"] = []
+    
+    credentials["usuarios"].append({
+        "usuario": usuario,
+        "cargo": cargo,
+        "criado_em": os.path.getmtime(CREDENTIALS_FILE) if os.path.exists(CREDENTIALS_FILE) else 0
+    })
+    
+    # Salva o arquivo
+    try:
+        with open(CREDENTIALS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(credentials, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"Erro ao salvar credenciais: {str(e)}")
+
+def get_all_users():
+    """Lista todos os usuários registrados"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT id, usuario, cargo FROM usuarios ORDER BY id")
+    users = cursor.fetchall()
+    conn.close()
+    
+    return users# Buscar categorias agrupadas com filtro
 def search_products_grouped(text=""):
     conn = get_connection()
     cursor = conn.cursor()

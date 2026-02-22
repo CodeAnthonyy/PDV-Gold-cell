@@ -1,6 +1,4 @@
-from main import app
-
-from flask import render_template, request, redirect, flash
+from flask import render_template, request, redirect, flash, jsonify, session
 
 from database.engine import (
     get_products_with_items,
@@ -22,201 +20,284 @@ from database.engine import (
     update_product,
     delete_product,
     product_has_items,
-    get_all_products
+    get_all_products,
+    get_total_users,
+    login_user,
+    register_user
 )
 
-# Tela inicial
-@app.route("/")
-def home():
-    return render_template("base.html")
+from auth import autenticar_usuario, registrar_novo_usuario
 
 
-# Lista de produtos
-@app.route("/products")
-def list_products():
-    data = get_products_grouped()
-    return render_template("products.html", data=data)
+def register_routes(app):
+    """Registra todas as rotas na aplicação"""
+    
+    # -------- AUTENTICAÇÃO --------
+
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        if request.method == "POST":
+            # API - JSON request
+            if request.is_json:
+                data = request.get_json()
+                usuario = data.get("usuario")
+                senha = data.get("senha")
+
+                result = autenticar_usuario(usuario, senha)
+
+                if result["status"]:
+                    session['user_id'] = result.get('id')
+                    session['usuario'] = result.get('usuario')
+                    session['cargo'] = result.get('cargo')
+
+                return jsonify(result)
+
+            # Form request
+            usuario = request.form.get("usuario")
+            senha = request.form.get("senha")
+
+            result = autenticar_usuario(usuario, senha)
+
+            if result["status"]:
+                session['user_id'] = result.get('id')
+                session['usuario'] = result.get('usuario')
+                session['cargo'] = result.get('cargo')
+                return redirect("/")
+            else:
+                flash(result["message"], "error")
+
+        return render_template("login.html")
 
 
-# Busca
-@app.route("/produtos")
-def produtos():
+    @app.route("/register", methods=["POST"])
+    def register():
+        if request.is_json:
+            data = request.get_json()
+            usuario = data.get("usuario")
+            senha = data.get("senha")
 
-    search = request.args.get("search", "")
+            result = registrar_novo_usuario(usuario, senha)
 
-    data = search_products_grouped(search)
+            if result["status"]:
+                session['user_id'] = result.get('id')
+                session['usuario'] = usuario
+                session['cargo'] = result.get('cargo')
 
-    return render_template("products.html", data=data)
+            return jsonify(result)
 
-
-# Cadastro
-@app.route("/produtos/novo", methods=["GET", "POST"])
-def novo_produto():
-
-    if request.method == "POST":
-
-        action = request.form.get("action")
-
-        # Cadastrar produto
-        if action == "product":
-
-            name = request.form.get("product_name")
-            add_product(name)
+        return jsonify({"status": False, "message": "Método inválido"}), 400
 
 
-        # Cadastrar item
-        elif action == "item":
+    @app.route("/api/check-first-user")
+    def check_first_user():
+        """Verifica se é o primeiro usuário"""
+        total = get_total_users()
+        return jsonify({"is_first_user": total == 0})
 
-            product_id = request.form.get("product_id")
+
+    @app.route("/logout")
+    def logout():
+        """Faz logout do usuário"""
+        session.clear()
+        flash("Logout realizado com sucesso!", "success")
+        return redirect("/login")
+
+
+    # -------- PÁGINAS PRINCIPAIS --------
+    @app.route("/")
+    def home():
+        # Redirecionar para login se não autenticado
+        if 'usuario' not in session:
+            return redirect("/login")
+        return render_template("base.html")
+
+
+    # Lista de produtos
+    @app.route("/products")
+    def list_products():
+        data = get_products_grouped()
+        return render_template("products.html", data=data)
+
+
+    # Busca
+    @app.route("/produtos")
+    def produtos():
+
+        search = request.args.get("search", "")
+
+        data = search_products_grouped(search)
+
+        return render_template("products.html", data=data)
+
+
+    # Cadastro
+    @app.route("/produtos/novo", methods=["GET", "POST"])
+    def novo_produto():
+
+        if request.method == "POST":
+
+            action = request.form.get("action")
+
+            # Cadastrar produto
+            if action == "product":
+
+                name = request.form.get("product_name")
+                add_product(name)
+
+
+            # Cadastrar item
+            elif action == "item":
+
+                product_id = request.form.get("product_id")
+                name = request.form.get("item_name")
+                price = request.form.get("price")
+                stock = request.form.get("stock")
+
+                add_item(product_id, name, price, stock)
+
+
+            return redirect("/produtos")
+
+
+        # GET → carregar lista de categorias únicas
+        products = get_all_products()
+
+        return render_template(
+            "cadastro_de_produtos.html",
+            products=products
+        )
+
+
+    # Editar item
+    @app.route("/produtos/editar/<int:item_id>", methods=["GET", "POST"])
+    def editar_produto(item_id):
+        
+        if request.method == "POST":
             name = request.form.get("item_name")
             price = request.form.get("price")
             stock = request.form.get("stock")
-
-            add_item(product_id, name, price, stock)
-
-
-        return redirect("/produtos")
-
-
-    # GET → carregar lista de categorias únicas
-    products = get_all_products()
-
-    return render_template(
-        "cadastro_de_produtos.html",
-        products=products
-    )
-
-
-# Editar item
-@app.route("/produtos/editar/<int:item_id>", methods=["GET", "POST"])
-def editar_produto(item_id):
-    
-    if request.method == "POST":
-        name = request.form.get("item_name")
-        price = request.form.get("price")
-        stock = request.form.get("stock")
-        product_id = request.form.get("product_id")
+            product_id = request.form.get("product_id")
+            
+            update_item(item_id, name, price, stock, product_id)
+            return redirect("/produtos")
         
-        update_item(item_id, name, price, stock, product_id)
-        return redirect("/produtos")
-    
-    # GET → carregar item para edição e lista de categorias únicas
-    item = get_item_by_id(item_id)
-    products = get_all_products()
-    
-    return render_template(
-        "cadastro_de_produtos.html",
-        item=item,
-        products=products,
-        editing=True
-    )
-
-
-# Editar categoria
-@app.route("/categoria/editar/<int:product_id>", methods=["GET", "POST"])
-def editar_categoria(product_id):
-    
-    if request.method == "POST":
-        name = request.form.get("category_name")
-        update_product(product_id, name)
-        return redirect("/produtos")
-    
-    # GET → carregar categoria
-    product = get_product_by_id(product_id)
-    
-    return render_template(
-        "editar_categoria.html",
-        product=product
-    )
-
-
-# Deletar categoria
-@app.route("/categoria/remover/<int:product_id>")
-def remover_categoria(product_id):
-    
-    # Verificar se tem itens
-    if product_has_items(product_id):
-        from flask import jsonify
+        # GET → carregar item para edição e lista de categorias únicas
+        item = get_item_by_id(item_id)
+        products = get_all_products()
+        
         return render_template(
-            "erro_categoria.html",
-            message="Não é possível remover esta categoria pois ela possui itens relacionados. Remova ou altere os itens primeiro."
+            "cadastro_de_produtos.html",
+            item=item,
+            products=products,
+            editing=True
         )
-    
-    # Se não tiver itens, deleta
-    delete_product(product_id)
-    return redirect("/produtos")
 
 
-# Remover item
-@app.route("/produtos/remover/<int:item_id>")
-def remover_produto(item_id):
-    delete_item(item_id)
-    return redirect("/produtos")
+    # Editar categoria
+    @app.route("/categoria/editar/<int:product_id>", methods=["GET", "POST"])
+    def editar_categoria(product_id):
+        
+        if request.method == "POST":
+            name = request.form.get("category_name")
+            update_product(product_id, name)
+            return redirect("/produtos")
+        
+        # GET → carregar categoria
+        product = get_product_by_id(product_id)
+        
+        return render_template(
+            "editar_categoria.html",
+            product=product
+        )
 
 
-# -------- VENDEDORES --------
-
-# Lista de vendedores
-@app.route("/vendedores")
-def list_sellers():
-    # Support optional edit via ?id=<seller_id> so the form can be shown on the same page
-    seller_id = request.args.get("id")
-    seller = None
-
-    if seller_id:
-        seller = get_seller_by_id(seller_id)
-
-    data = get_all_sellers()
-    return render_template("vendedores.html", data=data, seller=seller)
-
-
-# Busca de vendedores
-@app.route("/vendas")
-def vendas():
-    search = request.args.get("search", "")
-    data = search_sellers(search)
-    return render_template("vendedores.html", data=data)
+    # Deletar categoria
+    @app.route("/categoria/remover/<int:product_id>")
+    def remover_categoria(product_id):
+        
+        # Verificar se tem itens
+        if product_has_items(product_id):
+            from flask import jsonify
+            return render_template(
+                "erro_categoria.html",
+                message="Não é possível remover esta categoria pois ela possui itens relacionados. Remova ou altere os itens primeiro."
+            )
+        
+        # Se não tiver itens, deleta
+        delete_product(product_id)
+        return redirect("/produtos")
 
 
-# Cadastro de vendedores
-@app.route("/vendedores/novo", methods=["GET", "POST"])
-def novo_vendedor():
-
-    if request.method == "POST":
-        action = request.form.get("action")
-
-        # Cadastrar novo vendedor
-        if action == "novo":
-            name = request.form.get("seller_name")
-            phone = request.form.get("phone")
-
-            add_seller(name, phone)
-            return redirect("/vendedores")
-
-        # Editar vendedor
-        elif action == "editar":
-            seller_id = request.form.get("seller_id")
-            name = request.form.get("seller_name")
-            phone = request.form.get("phone")
-
-            update_seller(seller_id, name, phone)
-            return redirect("/vendedores")
-
-    # GET
-    seller_id = request.args.get("id")
-    seller = None
-
-    if seller_id:
-        seller = get_seller_by_id(seller_id)
-
-    return render_template(
-        "cadastro_de_vendedores.html",
-        seller=seller
-    )
+    # Remover item
+    @app.route("/produtos/remover/<int:item_id>")
+    def remover_produto(item_id):
+        delete_item(item_id)
+        return redirect("/produtos")
 
 
-# Remover vendedor
-@app.route("/vendedores/remover/<int:seller_id>")
-def remover_vendedor(seller_id):
-    delete_seller(seller_id)
-    return redirect("/vendedores")
+    # -------- VENDEDORES --------
+
+    # Lista de vendedores
+    @app.route("/vendedores")
+    def list_sellers():
+        # Support optional edit via ?id=<seller_id> so the form can be shown on the same page
+        seller_id = request.args.get("id")
+        seller = None
+
+        if seller_id:
+            seller = get_seller_by_id(seller_id)
+
+        data = get_all_sellers()
+        return render_template("vendedores.html", data=data, seller=seller)
+
+
+    # Busca de vendedores
+    @app.route("/vendas")
+    def vendas():
+        search = request.args.get("search", "")
+        data = search_sellers(search)
+        return render_template("vendedores.html", data=data)
+
+
+    # Cadastro de vendedores
+    @app.route("/vendedores/novo", methods=["GET", "POST"])
+    def novo_vendedor():
+
+        if request.method == "POST":
+            action = request.form.get("action")
+
+            # Cadastrar novo vendedor
+            if action == "novo":
+                name = request.form.get("seller_name")
+                phone = request.form.get("phone")
+
+                add_seller(name, phone)
+                return redirect("/vendedores")
+
+            # Editar vendedor
+            elif action == "editar":
+                seller_id = request.form.get("seller_id")
+                name = request.form.get("seller_name")
+                phone = request.form.get("phone")
+
+                update_seller(seller_id, name, phone)
+                return redirect("/vendedores")
+
+        # GET
+        seller_id = request.args.get("id")
+        seller = None
+
+        if seller_id:
+            seller = get_seller_by_id(seller_id)
+
+        return render_template(
+            "cadastro_de_vendedores.html",
+            seller=seller
+        )
+
+
+    # Remover vendedor
+    @app.route("/vendedores/remover/<int:seller_id>")
+    def remover_vendedor(seller_id):
+        delete_seller(seller_id)
+        return redirect("/vendedores")

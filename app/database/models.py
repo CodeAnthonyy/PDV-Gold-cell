@@ -32,3 +32,14 @@ def create_tables(cursor):
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
+
+    # Tabela de usuários
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario TEXT NOT NULL UNIQUE,
+        senha TEXT NOT NULL,
+        cargo TEXT NOT NULL DEFAULT 'usuario',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
