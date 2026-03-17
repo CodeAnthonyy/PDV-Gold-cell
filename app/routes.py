@@ -103,7 +103,7 @@ def register_routes(app):
         return redirect("/login")
 
 
-    # -------- PÁGINAS PRINCIPAIS --------
+    # -------- PÁGINAS iniciais --------
     @app.route("/")
     def home():
         # Redirecionar para login se não autenticado
@@ -242,21 +242,44 @@ def register_routes(app):
     def list_sellers():
         # Support optional edit via ?id=<seller_id> so the form can be shown on the same page
         seller_id = request.args.get("id")
+        search = request.args.get("search", "")
         seller = None
 
         if seller_id:
             seller = get_seller_by_id(seller_id)
 
-        data = get_all_sellers()
+        if search:
+            data = search_sellers(search)
+        else:
+            data = get_all_sellers()
+
         return render_template("vendedores.html", data=data, seller=seller)
 
 
     # Busca de vendedores
     @app.route("/vendas")
     def vendas():
-        search = request.args.get("search", "")
-        data = search_sellers(search)
-        return render_template("vendedores.html", data=data)
+        grouped = get_products_grouped()
+
+        products = []
+        for product_id, product_data in grouped.items():
+            category = product_data["name"]
+            for item in product_data["items"]:
+                products.append({
+                    "id": item["id"],
+                    "name": item["name"],
+                    "price": item["price"] or 0,
+                    "stock": item["stock"] or 0,
+                    "category": category
+                })
+
+        sellers = get_all_sellers()
+        sellers_payload = [
+            {"id": seller[0], "name": seller[1], "phone": seller[2]}
+            for seller in sellers
+        ]
+
+        return render_template("vendas.html", products=products, sellers=sellers_payload)
 
 
     # Cadastro de vendedores
