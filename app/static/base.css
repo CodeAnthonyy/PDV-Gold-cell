@@ -6,13 +6,13 @@
 }
 
 body {
-    height: 100vh;
+    min-height: 100vh;
 }
 
 /* Container geral */
 .container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 /* Barra lateral */
@@ -21,6 +21,10 @@ body {
     background-color: #000;
     color: #fff;
     padding: 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: flex-start;
 }
 
 /* Logo */
@@ -57,4 +61,5 @@ body {
     flex: 1;
     background-color: #fff;
     padding: 30px;
+    min-height: 100vh;
 }

@@ -1,0 +1,88 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Relatórios - Gold Cell{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='relatorios.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div id="relatorios-page">
+
+  <div id="filtros-bar">
+    <input type="date" id="data-inicio" />
+    <input type="date" id="data-fim" />
+    <select id="filtro-metodo">
+      <option value="">Todos os métodos</option>
+      <option value="Dinheiro">Dinheiro</option>
+      <option value="Crédito">Crédito</option>
+      <option value="Débito">Débito</option>
+      <option value="Pix">Pix</option>
+    </select>
+    <button onclick="filtrarHoje()">Hoje</button>
+    <button onclick="filtrarSemana()">Esta semana</button>
+    <button onclick="filtrarMes()">Este mês</button>
+    <button onclick="carregarTudo()">Filtrar</button>
+  </div>
+
+  <div id="kpis-grid">
+    <div class="kpi-card">
+      <span id="kpi-fat">-</span>
+      <label>Faturamento</label>
+    </div>
+    <div class="kpi-card">
+      <span id="kpi-qtd">-</span>
+      <label>Nº de Vendas</label>
+    </div>
+    <div class="kpi-card">
+      <span id="kpi-ticket">-</span>
+      <label>Ticket Médio</label>
+    </div>
+    <div class="kpi-card">
+      <span id="kpi-maior">-</span>
+      <label>Maior Venda</label>
+    </div>
+  </div>
+
+  <div id="graficos-row">
+    <div class="grafico-box">
+      <h3>Vendas por horário</h3>
+      <canvas id="grafico-horas"></canvas>
+    </div>
+    <div class="grafico-box">
+      <h3>Faturamento por vendedor</h3>
+      <canvas id="grafico-vendedores"></canvas>
+    </div>
+  </div>
+
+  <div id="tabela-box">
+    <h3>Registro de vendas</h3>
+    <table id="tabela-vendas">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data / Hora</th>
+          <th>Vendedor</th>
+          <th>Itens</th>
+          <th>Total</th>
+          <th>Pagamento</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-vendas"></tbody>
+    </table>
+    <p id="tabela-vazia" style="display:none">
+      Nenhuma venda encontrada para o período.
+    </p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="{{ url_for('static', filename='relatorios.js') }}"></script>
+{% endblock %}

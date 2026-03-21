@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendas.css') }}">
+{% endblock %}
+
+{% block content %}
+
+
+<div class="vendas-container">
+
+  <!-- PRODUTOS -->
+  <section class="produtos-area">
+
+    <h2> Buscar Produto </h2>
+
+    <input 
+      type="text"
+      id="busca-produto"
+      placeholder="Nome, código ou categoria..."
+      autocomplete="off"
+    >
+
+    <div id="produtos-loading" class="hidden">
+      Buscando...
+    </div>
+
+    <ul id="lista-produtos"></ul>
+
+  </section>
+
+
+  <!-- CARRINHO -->
+  <section class="carrinho-area">
+
+    <h2>🛒 Carrinho</h2>
+
+    <form id="form-venda">
+
+      <!-- Vendedor -->
+      <div class="campo">
+
+        <label>Vendedor</label>
+
+        <select id="vendedor" required>
+          <option value="">Selecione</option>
+        </select>
+
+      </div>
+
+
+      <!-- Itens -->
+      <ul id="carrinho-lista"></ul>
+
+
+      <!-- Totais -->
+      <div class="carrinho-totais">
+
+        <div>
+          Subtotal:
+          R$ <span id="subtotal">0.00</span>
+        </div>
+
+
+        <div class="desconto-area">
+
+          <label>Desconto</label>
+
+          <input 
+            type="number"
+            id="desconto-valor"
+            step="0.01"
+            placeholder="0.00"
+          >
+
+          <select id="desconto-tipo">
+            <option value="reais">R$</option>
+            <option value="porcento">%</option>
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- Total -->
+      <div class="total-box">
+        TOTAL: R$ <span id="total">0.00</span>
+      </div>
+
+
+      <!-- Pagamento -->
+      <div class="pagamento-area">
+
+        <label>Pagamento</label>
+
+        <select id="forma-pagamento" required>
+          <option value="">Selecione</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="pix">Pix</option>
+          <option value="credito">Crédito</option>
+          <option value="debito">Débito</option>
+        </select>
+
+        <input 
+          type="number"
+          id="valor-pago"
+          step="0.01"
+          placeholder="Valor pago"
+        >
+
+        <div>
+          Troco: R$ <span id="troco">0.00</span>
+        </div>
+
+      </div>
+
+
+      <!-- Mensagem -->
+      <div id="mensagem-venda"></div>
+
+
+      <!-- Ações -->
+      <div class="acoes">
+
+        <button type="button" id="btn-cancelar" class="btn-cancelar">
+          ❌ Cancelar
+        </button>
+
+        <button type="submit" class="btn-finalizar">
+          ✅ Finalizar
+        </button>
+
+      </div>
+
+    </form>
+
+  </section>
+
+</div>
+
+{% endblock %}

@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PDV - Gold Cell</title>
+    <title>{% block title %}PDV - Gold Cell{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 <div class="container">
 
@@ -15,15 +15,15 @@
         <h1 class="logo">Gold Cell</h1>
 
         <nav class="menu">
-            <a href="/vendas"><button>Vendas</button></a>
-            <a href="/produtos"><button>Produtos</button></a>
-            <a href="/vendedores"><button>Vendedores</button></a>
+            <a href="{{ url_for('vendas') }}"><button>Vendas</button></a>
+            <a href="{{ url_for('produtos') }}"><button>Produtos</button></a>
+            <a href="{{ url_for('list_sellers') }}"><button>Vendedores</button></a>
             <a href="/relatorios"><button>Relatórios</button></a>
         </nav>
     </aside>
 
     <!-- Conteúdo dinâmico -->
-    <main class="main-content">
+    <main class="main-content {% block main_class %}{% endblock %}">
 
         {% block content %}
         {% endblock %}
@@ -32,5 +32,6 @@
 
 </div>
 
+{% block extra_js %}{% endblock %}
 </body>
 </html>

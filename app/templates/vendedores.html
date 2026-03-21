@@ -12,7 +12,7 @@
 <div class="products-header">
 
     <!-- Busca -->
-    <form method="get" action="/vendas" class="search-box">
+    <form method="get" action="/vendedores" class="search-box">
 
         <input 
             type="text" 
@@ -43,7 +43,7 @@
         {% endif %}
 
         <input 
-            type="text" 
+            type="text"  
             name="seller_name"
             placeholder="Nome do vendedor"
             value="{% if seller %}{{ seller[1] }}{% endif %}"

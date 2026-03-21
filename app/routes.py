@@ -252,12 +252,14 @@ def register_routes(app):
 
 
     # Busca de vendedores
-    @app.route("/vendas")
-    def vendas():
+    @app.route("/vendedores")
+    def vendedores():
         search = request.args.get("search", "")
-        data = search_sellers(search)
+        if search:
+            data = search_sellers(search)
+        else:
+            data = get_all_sellers()
         return render_template("vendedores.html", data=data)
-
 
     # Cadastro de vendedores
     @app.route("/vendedores/novo", methods=["GET", "POST"])
