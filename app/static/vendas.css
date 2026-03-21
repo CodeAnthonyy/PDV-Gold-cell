@@ -391,6 +391,74 @@
     outline: none;
 }
 
+#div-troco {
+    display: none;
+}
+
+.pagamentos-area {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pagamentos-label {
+    color: #888888;
+    font-size: 12px;
+}
+
+.pagamento-linha {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.pagamento-linha select,
+.pagamento-linha input {
+    background: #222222;
+    border: 0.5px solid #444444;
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: #eeeeee;
+    font-size: 12px;
+    outline: none;
+}
+
+.pagamento-linha select { flex: 1.2; }
+.pagamento-linha input { flex: 1; }
+
+.btn-remover-pagamento {
+    width: 26px;
+    height: 26px;
+    background: transparent;
+    border: 0.5px solid #444444;
+    border-radius: 8px;
+    color: #777777;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-remover-pagamento:hover {
+    color: #CC4444;
+    border-color: #7A2A2A;
+}
+
+.btn-add-pagamento {
+    background: transparent;
+    border: 0.5px dashed #555555;
+    border-radius: 8px;
+    color: #888888;
+    font-size: 12px;
+    padding: 6px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.btn-add-pagamento:hover {
+    border-color: var(--gc-gold);
+    color: var(--gc-gold);
+}
+
 .troco-valor {
     color: var(--gc-gold);
     font-size: 13px;

@@ -27,14 +27,18 @@
     const totalEl = document.getElementById("total");
     const descontoValorEl = document.getElementById("desconto-valor");
     const descontoTipoEl = document.getElementById("desconto-tipo");
-    const valorPagoEl = document.getElementById("valor-pago");
     const trocoEl = document.getElementById("troco");
+    const trocoContainer = document.getElementById("div-troco");
+
+    const pagamentosLista = document.getElementById("pagamentos-lista");
+    const btnAddPagamento = document.getElementById("btn-add-pagamento");
 
     const mensagemEl = document.getElementById("mensagem-venda");
     const formVenda = document.getElementById("form-venda");
     const btnCancelar = document.getElementById("btn-cancelar");
 
     const carrinho = new Map();
+    let pagamentos = [{ metodo: "", valor: "" }];
 
     const formatBRL = (value) => new Intl.NumberFormat("pt-BR", {
         style: "currency",
@@ -169,6 +173,79 @@
         renderCarrinho();
     };
 
+    const atualizarPagamento = (index, campo, valor) => {
+        pagamentos[index][campo] = valor;
+        calcularTotais();
+    };
+
+    const adicionarPagamento = () => {
+        pagamentos.push({ metodo: "", valor: "" });
+        renderPagamentos();
+        calcularTotais();
+    };
+
+    const removerPagamento = (index) => {
+        pagamentos = pagamentos.filter((_, i) => i !== index);
+        if (pagamentos.length === 0) {
+            pagamentos = [{ metodo: "", valor: "" }];
+        }
+        renderPagamentos();
+        calcularTotais();
+    };
+
+    const renderPagamentos = () => {
+        pagamentosLista.innerHTML = "";
+
+        pagamentos.forEach((pag, index) => {
+            const linha = document.createElement("div");
+            linha.className = "pagamento-linha";
+
+            const select = document.createElement("select");
+            const opcoes = [
+                { value: "", label: "Selecione" },
+                { value: "Dinheiro", label: "Dinheiro" },
+                { value: "Crédito", label: "Crédito" },
+                { value: "Débito", label: "Débito" },
+                { value: "Pix", label: "Pix" }
+            ];
+
+            opcoes.forEach((opcao) => {
+                const option = document.createElement("option");
+                option.value = opcao.value;
+                option.textContent = opcao.label;
+                select.appendChild(option);
+            });
+
+            select.value = pag.metodo;
+            select.addEventListener("change", (event) => {
+                atualizarPagamento(index, "metodo", event.target.value);
+            });
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.step = "0.01";
+            input.min = "0";
+            input.placeholder = "0,00";
+            input.value = pag.valor;
+            input.addEventListener("input", (event) => {
+                atualizarPagamento(index, "valor", event.target.value);
+            });
+
+            linha.append(select, input);
+
+            if (pagamentos.length > 1) {
+                const remover = document.createElement("button");
+                remover.type = "button";
+                remover.className = "btn-remover-pagamento";
+                remover.textContent = "×";
+                remover.addEventListener("click", () => removerPagamento(index));
+                linha.appendChild(remover);
+            }
+
+            pagamentosLista.appendChild(linha);
+        });
+    };
+
     const calcularTotais = () => {
         let subtotal = 0;
         carrinho.forEach((item) => {
@@ -193,9 +270,26 @@
         subtotalEl.textContent = formatBRL(subtotal);
         totalEl.textContent = formatBRL(total);
 
-        const valorPago = Number(valorPagoEl.value) || 0;
-        const troco = valorPago > total ? valorPago - total : 0;
+        const totalPago = pagamentos.reduce((soma, pag) => {
+            return soma + (parseFloat(pag.valor) || 0);
+        }, 0);
+
+        const valorEmDinheiro = pagamentos
+            .filter((pag) => pag.metodo === "Dinheiro")
+            .reduce((soma, pag) => soma + (parseFloat(pag.valor) || 0), 0);
+
+        const pagoSemDinheiro = pagamentos
+            .filter((pag) => pag.metodo && pag.metodo !== "Dinheiro")
+            .reduce((soma, pag) => soma + (parseFloat(pag.valor) || 0), 0);
+
+        const restanteParaDinheiro = Math.max(0, total - pagoSemDinheiro);
+        const troco = Math.max(0, valorEmDinheiro - restanteParaDinheiro);
+        const temDinheiro = pagamentos.some((pag) => pag.metodo === "Dinheiro");
+
+        trocoContainer.style.display = temDinheiro ? "flex" : "none";
         trocoEl.textContent = formatBRL(troco);
+
+        return { subtotal, total, totalPago };
     };
 
     const renderCarrinho = () => {
@@ -254,11 +348,11 @@
 
     const resetVenda = () => {
         carrinho.clear();
+        pagamentos = [{ metodo: "", valor: "" }];
+        vendedorSelect.value = "";
         descontoValorEl.value = "";
         descontoTipoEl.value = "reais";
-        valorPagoEl.value = "";
-        vendedorSelect.value = "";
-        document.getElementById("forma-pagamento").value = "";
+        renderPagamentos();
         renderCarrinho();
     };
 
@@ -282,14 +376,15 @@
 
     descontoValorEl.addEventListener("input", calcularTotais);
     descontoTipoEl.addEventListener("change", calcularTotais);
-    valorPagoEl.addEventListener("input", calcularTotais);
+
+    btnAddPagamento.addEventListener("click", adicionarPagamento);
 
     btnCancelar.addEventListener("click", () => {
         limparMensagem();
         resetVenda();
     });
 
-    formVenda.addEventListener("submit", (event) => {
+    formVenda.addEventListener("submit", async (event) => {
         event.preventDefault();
         limparMensagem();
 
@@ -303,9 +398,19 @@
             return;
         }
 
-        const formaPagamento = document.getElementById("forma-pagamento").value;
-        if (!formaPagamento) {
-            mostrarMensagem("Selecione a forma de pagamento.");
+        const algumInvalido = pagamentos.some((pag) => {
+            return !pag.metodo || !pag.valor || parseFloat(pag.valor) <= 0;
+        });
+
+        if (algumInvalido) {
+            mostrarMensagem("Preencha todos os métodos e valores de pagamento.");
+            return;
+        }
+
+        const { subtotal, total, totalPago } = calcularTotais();
+
+        if (totalPago < total) {
+            mostrarMensagem("Valor pago insuficiente.");
             return;
         }
 
@@ -313,11 +418,71 @@
             return;
         }
 
-        mostrarMensagem("Venda finalizada com sucesso!", "sucesso");
-        resetVenda();
+        const vendedorId = Number(vendedorSelect.value);
+        const vendedorSelecionado = vendedores.find(
+            (seller) => Number(seller.id) === vendedorId
+        );
+
+        if (!vendedorSelecionado) {
+            mostrarMensagem("Vendedor invÃ¡lido.");
+            return;
+        }
+
+        const descontoTipo =
+            descontoTipoEl.value === "porcento" ? "%" : "R$";
+
+        const payload = {
+            seller_id: vendedorId,
+            seller_name: vendedorSelecionado.name,
+            subtotal: subtotal,
+            desconto: Number(descontoValorEl.value) || 0,
+            desconto_tipo: descontoTipo,
+            total: total,
+            itens: Array.from(carrinho.values()).map((item) => ({
+                item_id: item.id,
+                item_name: item.name,
+                quantidade: item.qtd,
+                preco_unit: item.price,
+                subtotal: item.qtd * item.price
+            })),
+            pagamentos: pagamentos.map((pag) => ({
+                metodo: pag.metodo,
+                valor: parseFloat(pag.valor)
+            }))
+        };
+
+        try {
+            const res = await fetch("/api/vendas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            let data = {};
+            try {
+                data = await res.json();
+            } catch (err) {
+                data = {};
+            }
+
+            if (res.ok) {
+                mostrarMensagem(
+                    `Venda #${data.id} registrada com sucesso!`,
+                    "sucesso"
+                );
+                resetVenda();
+            } else {
+                mostrarMensagem(
+                    data.erro || "Erro ao salvar a venda. Tente novamente."
+                );
+            }
+        } catch (err) {
+            mostrarMensagem(`Erro de conexÃ£o: ${err.message}`);
+        }
     });
 
     preencherVendedores();
     renderProdutos("");
+    renderPagamentos();
     renderCarrinho();
 })();

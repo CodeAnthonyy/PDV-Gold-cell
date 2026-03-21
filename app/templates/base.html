@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PDV - Gold Cell</title>
+    <title>{% block title %}PDV - Gold Cell{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     {% block extra_css %}{% endblock %}
 </head>

@@ -96,29 +96,15 @@
           </div>
         </div>
 
-        <div class="linha">
-          <label for="forma-pagamento">Pagamento</label>
-          <select id="forma-pagamento" required>
-            <option value="">Selecione</option>
-            <option value="dinheiro">Dinheiro</option>
-            <option value="credito">Crédito</option>
-            <option value="debito">Débito</option>
-            <option value="pix">Pix</option>
-          </select>
+        <div class="pagamentos-area">
+          <div class="pagamentos-label">Pagamento</div>
+          <div id="pagamentos-lista"></div>
+          <button type="button" id="btn-add-pagamento" class="btn-add-pagamento">
+            + Adicionar método
+          </button>
         </div>
 
-        <div class="linha">
-          <label for="valor-pago">Valor pago</label>
-          <input
-            type="number"
-            id="valor-pago"
-            step="0.01"
-            placeholder="0,00"
-            min="0"
-          >
-        </div>
-
-        <div class="linha">
+        <div class="linha" id="div-troco">
           <label>Troco</label>
           <div id="troco" class="troco-valor">R$ 0,00</div>
         </div>

@@ -14,7 +14,9 @@ CREDENTIALS_FILE = os.path.join(os.path.dirname(BASE_DIR), "credentials.json")
 
 
 def get_connection():
-    return sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 #cria o banco de dados
 def init_db():
