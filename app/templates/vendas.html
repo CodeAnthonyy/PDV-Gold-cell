@@ -1,137 +1,142 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='vendas.css') }}">
 {% endblock %}
 
-{% block body_class %}vendas-body{% endblock %}
-{% block main_class %}vendas-main{% endblock %}
-
 {% block content %}
 
-<div class="vendas-page">
-  <div class="topbar">
-    <input
+
+<div class="vendas-container">
+
+  <!-- PRODUTOS -->
+  <section class="produtos-area">
+
+    <h2> Buscar Produto </h2>
+
+    <input 
       type="text"
       id="busca-produto"
-      placeholder="Buscar produto por nome, código ou categoria..."
+      placeholder="Nome, código ou categoria..."
       autocomplete="off"
     >
-  </div>
 
-  <div class="vendas-container">
-    <!-- PAINEL ESQUERDO: PRODUTOS -->
-    <section class="produtos-area">
-      <div class="produtos-header">PRODUTOS</div>
+    <div id="produtos-loading" class="hidden">
+      Buscando...
+    </div>
 
-      <div id="produtos-loading" class="produtos-loading hidden">Buscando...</div>
+    <ul id="lista-produtos"></ul>
 
-      <div id="lista-produtos" class="produtos-lista"></div>
+  </section>
 
-      <div id="produtos-vazio" class="produtos-vazio hidden">
-        Nenhum produto encontrado
+
+  <!-- CARRINHO -->
+  <section class="carrinho-area">
+
+    <h2>🛒 Carrinho</h2>
+
+    <form id="form-venda">
+
+      <!-- Vendedor -->
+      <div class="campo">
+
+        <label>Vendedor</label>
+
+        <select id="vendedor" required>
+          <option value="">Selecione</option>
+        </select>
+
       </div>
-    </section>
 
-    <!-- PAINEL DIREITO: CARRINHO -->
-    <section class="carrinho-area">
-      <div class="carrinho-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="9" cy="21" r="1"></circle>
-          <circle cx="20" cy="21" r="1"></circle>
-          <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
-        </svg>
-        <span>CARRINHO</span>
-      </div>
 
-      <form id="form-venda" class="carrinho-form">
-        <div class="linha">
-          <label for="vendedor">Vendedor</label>
-          <select id="vendedor" required>
-            <option value="">Selecione</option>
+      <!-- Itens -->
+      <ul id="carrinho-lista"></ul>
+
+
+      <!-- Totais -->
+      <div class="carrinho-totais">
+
+        <div>
+          Subtotal:
+          R$ <span id="subtotal">0.00</span>
+        </div>
+
+
+        <div class="desconto-area">
+
+          <label>Desconto</label>
+
+          <input 
+            type="number"
+            id="desconto-valor"
+            step="0.01"
+            placeholder="0.00"
+          >
+
+          <select id="desconto-tipo">
+            <option value="reais">R$</option>
+            <option value="porcento">%</option>
           </select>
+
         </div>
 
-        <div class="carrinho-itens">
-          <div class="itens-header">
-            <span>Produto</span>
-            <span>Qtd</span>
-            <span class="text-right">Subtotal</span>
-            <span></span>
-          </div>
+      </div>
 
-          <div id="carrinho-lista" class="itens-body"></div>
 
-          <div id="carrinho-vazio" class="carrinho-vazio">
-            Nenhum produto adicionado
-          </div>
+      <!-- Total -->
+      <div class="total-box">
+        TOTAL: R$ <span id="total">0.00</span>
+      </div>
+
+
+      <!-- Pagamento -->
+      <div class="pagamento-area">
+
+        <label>Pagamento</label>
+
+        <select id="forma-pagamento" required>
+          <option value="">Selecione</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="pix">Pix</option>
+          <option value="credito">Crédito</option>
+          <option value="debito">Débito</option>
+        </select>
+
+        <input 
+          type="number"
+          id="valor-pago"
+          step="0.01"
+          placeholder="Valor pago"
+        >
+
+        <div>
+          Troco: R$ <span id="troco">0.00</span>
         </div>
 
-        <div class="totais-box">
-          <div class="total-linha">
-            <span>Subtotal</span>
-            <span id="subtotal">R$ 0,00</span>
-          </div>
+      </div>
 
-          <div class="total-linha desconto-linha">
-            <span>Desconto</span>
-            <div class="desconto-controles">
-              <input
-                type="number"
-                id="desconto-valor"
-                step="0.01"
-                placeholder="0,00"
-                min="0"
-              >
-              <select id="desconto-tipo">
-                <option value="reais">R$</option>
-                <option value="porcento">%</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="total-linha total-final">
-            <span>Total</span>
-            <span id="total">R$ 0,00</span>
-          </div>
-        </div>
+      <!-- Mensagem -->
+      <div id="mensagem-venda"></div>
 
-        <div class="pagamentos-area">
-          <div class="pagamentos-label">Pagamento</div>
-          <div id="pagamentos-lista"></div>
-          <button type="button" id="btn-add-pagamento" class="btn-add-pagamento">
-            + Adicionar método
-          </button>
-        </div>
 
-        <div class="linha" id="div-troco">
-          <label>Troco</label>
-          <div id="troco" class="troco-valor">R$ 0,00</div>
-        </div>
+      <!-- Ações -->
+      <div class="acoes">
 
-        <div id="mensagem-venda" class="mensagem-venda"></div>
+        <button type="button" id="btn-cancelar" class="btn-cancelar">
+          ❌ Cancelar
+        </button>
 
-        <div class="acoes">
-          <button type="button" id="btn-cancelar" class="btn-cancelar">
-            Cancelar
-          </button>
+        <button type="submit" class="btn-finalizar">
+          ✅ Finalizar
+        </button>
 
-          <button type="submit" class="btn-finalizar">
-            Finalizar venda
-          </button>
-        </div>
-      </form>
-    </section>
-  </div>
+      </div>
+
+    </form>
+
+  </section>
+
 </div>
 
-<script>
-  window.__PRODUTOS__ = {{ products|tojson }};
-  window.__VENDEDORES__ = {{ sellers|tojson }};
-</script>
-
-{% endblock %}
-
-{% block extra_js %}
-  <script src="{{ url_for('static', filename='vendas.js') }}"></script>
 {% endblock %}
