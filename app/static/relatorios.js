@@ -12,6 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const hoje = new Date().toISOString().slice(0, 10);
   document.getElementById("data-inicio").value = hoje;
   document.getElementById("data-fim").value = hoje;
+  const filtrosBar = document.getElementById("filtros-bar");
+  if (filtrosBar) {
+    filtrosBar.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.classList.remove("btn-feedback");
+        void btn.offsetWidth;
+        btn.classList.add("btn-feedback");
+        setTimeout(() => btn.classList.remove("btn-feedback"), 260);
+      });
+    });
+  }
   carregarTudo();
 });
 

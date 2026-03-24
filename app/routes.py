@@ -23,7 +23,14 @@ from database.engine import (
     get_all_products,
     get_total_users,
     login_user,
-    register_user
+    register_user,
+    add_venda,
+    get_vendas,
+    get_venda_by_id,
+    cancelar_venda,
+    get_dashboard_resumo,
+    get_dashboard_por_hora,
+    get_dashboard_por_vendedor
 )
 
 from auth import autenticar_usuario, registrar_novo_usuario
@@ -110,6 +117,102 @@ def register_routes(app):
         if 'usuario' not in session:
             return redirect("/login")
         return render_template("base.html")
+    # Vendas
+    @app.route("/vendas")
+    def vendas():
+        if "usuario" not in session:
+            return redirect("/login")
+
+        produtos = []
+        for row in get_products_with_items():
+            item_id = row["item_id"]
+            if item_id is None:
+                continue
+            produtos.append({
+                "id": item_id,
+                "name": row["item_name"],
+                "price": row["price"],
+                "stock": row["stock"],
+                "category": row["product_name"]
+            })
+
+        vendedores = [
+            {"id": row["id"], "name": row["name"]}
+            for row in get_all_sellers()
+        ]
+
+        return render_template(
+            "vendas.html",
+            produtos=produtos,
+            vendedores=vendedores
+        )
+
+    # Relat??rios
+    @app.route("/relatorios")
+    def relatorios():
+        if "usuario" not in session:
+            return redirect("/login")
+        return render_template("relatorios.html")
+
+    # -------- API VENDAS / DASHBOARD --------
+
+    @app.route("/api/vendas", methods=["GET", "POST"])
+    def api_vendas():
+        if request.method == "POST":
+            if not request.is_json:
+                return jsonify({"erro": "Payload invÃ¡lido"}), 400
+
+            payload = request.get_json() or {}
+            try:
+                venda_id = add_venda(payload)
+                return jsonify({"id": venda_id}), 201
+            except Exception as exc:
+                return jsonify({"erro": str(exc)}), 500
+
+        data_inicio = request.args.get("data_inicio")
+        data_fim = request.args.get("data_fim")
+        metodo = request.args.get("metodo")
+        data = get_vendas(data_inicio, data_fim, metodo)
+        return jsonify(data)
+
+
+    @app.route("/api/vendas/<int:venda_id>")
+    def api_venda_detalhe(venda_id):
+        venda = get_venda_by_id(venda_id)
+        if not venda:
+            return jsonify({"erro": "Venda nÃ£o encontrada"}), 404
+        return jsonify(venda)
+
+
+    @app.route("/api/vendas/<int:venda_id>/cancelar", methods=["PATCH"])
+    def api_venda_cancelar(venda_id):
+        cancelar_venda(venda_id)
+        return jsonify({"ok": True})
+
+
+    @app.route("/api/dashboard/resumo")
+    def api_dashboard_resumo():
+        data_inicio = request.args.get("data_inicio")
+        data_fim = request.args.get("data_fim")
+        metodo = request.args.get("metodo")
+        return jsonify(get_dashboard_resumo(data_inicio, data_fim, metodo))
+
+
+    @app.route("/api/dashboard/por-hora")
+    def api_dashboard_por_hora():
+        data_inicio = request.args.get("data_inicio")
+        data_fim = request.args.get("data_fim")
+        metodo = request.args.get("metodo")
+        return jsonify(get_dashboard_por_hora(data_inicio, data_fim, metodo))
+
+
+    @app.route("/api/dashboard/por-vendedor")
+    def api_dashboard_por_vendedor():
+        data_inicio = request.args.get("data_inicio")
+        data_fim = request.args.get("data_fim")
+        metodo = request.args.get("metodo")
+        return jsonify(get_dashboard_por_vendedor(data_inicio, data_fim, metodo))
+
 
 
     # Lista de produtos

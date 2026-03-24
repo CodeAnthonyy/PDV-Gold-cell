@@ -2,6 +2,7 @@ import sqlite3
 import os
 import bcrypt
 import json
+from datetime import datetime
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -331,6 +332,274 @@ def search_sellers(text=""):
     conn.close()
 
     return rows
+
+# -------- VENDAS / RELATORIOS --------
+
+def _build_vendas_filters(data_inicio=None, data_fim=None, metodo=None, somente_concluidas=False):
+    where = []
+    params = []
+
+    if somente_concluidas:
+        where.append("v.status != 'cancelada'")
+
+    if data_inicio and data_fim:
+        where.append("date(v.created_at) BETWEEN ? AND ?")
+        params.extend([data_inicio, data_fim])
+    elif data_inicio:
+        where.append("date(v.created_at) >= ?")
+        params.append(data_inicio)
+    elif data_fim:
+        where.append("date(v.created_at) <= ?")
+        params.append(data_fim)
+
+    if metodo:
+        where.append("""
+            EXISTS (
+                SELECT 1
+                FROM venda_pagamentos vp
+                WHERE vp.venda_id = v.id AND vp.metodo = ?
+            )
+        """)
+        params.append(metodo)
+
+    if not where:
+        return "1=1", params
+
+    return " AND ".join(where), params
+
+
+def add_venda(payload):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("""
+            INSERT INTO vendas (
+                seller_id, seller_name, subtotal, desconto, desconto_tipo, total, status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'concluida', ?)
+        """, (
+            payload.get("seller_id"),
+            payload.get("seller_name"),
+            payload.get("subtotal"),
+            payload.get("desconto", 0),
+            payload.get("desconto_tipo", "R$"),
+            payload.get("total"),
+            created_at
+        ))
+
+        venda_id = cursor.lastrowid
+
+        for item in payload.get("itens", []):
+            cursor.execute("""
+                INSERT INTO venda_itens (
+                    venda_id, item_id, item_name, quantidade, preco_unit, subtotal
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                venda_id,
+                item.get("item_id"),
+                item.get("item_name"),
+                item.get("quantidade"),
+                item.get("preco_unit"),
+                item.get("subtotal")
+            ))
+
+            # Atualiza estoque sem permitir negativo (estoque pode ser nulo)
+            cursor.execute("""
+                UPDATE items
+                SET stock = MAX(COALESCE(stock, 0) - ?, 0)
+                WHERE id = ?
+            """, (
+                item.get("quantidade") or 0,
+                item.get("item_id")
+            ))
+
+        for pag in payload.get("pagamentos", []):
+            cursor.execute("""
+                INSERT INTO venda_pagamentos (venda_id, metodo, valor)
+                VALUES (?, ?, ?)
+            """, (
+                venda_id,
+                pag.get("metodo"),
+                pag.get("valor")
+            ))
+
+        conn.commit()
+        return venda_id
+    finally:
+        conn.close()
+
+
+def get_vendas(data_inicio=None, data_fim=None, metodo=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    where_sql, params = _build_vendas_filters(data_inicio, data_fim, metodo)
+
+    cursor.execute(f"""
+        SELECT
+            v.id,
+            v.created_at,
+            v.seller_name,
+            v.total,
+            v.status,
+            (
+                SELECT COALESCE(SUM(quantidade), 0)
+                FROM venda_itens vi
+                WHERE vi.venda_id = v.id
+            ) AS total_itens,
+            (
+                SELECT COALESCE(GROUP_CONCAT(DISTINCT metodo), '')
+                FROM venda_pagamentos vp2
+                WHERE vp2.venda_id = v.id
+            ) AS metodos
+        FROM vendas v
+        WHERE {where_sql}
+        ORDER BY v.created_at DESC
+    """, params)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [dict(row) for row in rows]
+
+
+def get_venda_by_id(venda_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, seller_id, seller_name, subtotal, desconto,
+               desconto_tipo, total, status, created_at
+        FROM vendas
+        WHERE id = ?
+    """, (venda_id,))
+
+    venda = cursor.fetchone()
+    if not venda:
+        conn.close()
+        return None
+
+    cursor.execute("""
+        SELECT item_id, item_name, quantidade, preco_unit, subtotal
+        FROM venda_itens
+        WHERE venda_id = ?
+    """, (venda_id,))
+    itens = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT metodo, valor
+        FROM venda_pagamentos
+        WHERE venda_id = ?
+    """, (venda_id,))
+    pagamentos = cursor.fetchall()
+
+    conn.close()
+
+    resultado = dict(venda)
+    resultado["itens"] = [dict(row) for row in itens]
+    resultado["pagamentos"] = [dict(row) for row in pagamentos]
+
+    return resultado
+
+
+def cancelar_venda(venda_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+        UPDATE vendas
+        SET status = 'cancelada', updated_at = ?
+        WHERE id = ?
+    """, (updated_at, venda_id))
+
+    conn.commit()
+    conn.close()
+
+    return True
+
+
+def get_dashboard_resumo(data_inicio=None, data_fim=None, metodo=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    where_sql, params = _build_vendas_filters(
+        data_inicio, data_fim, metodo, somente_concluidas=True
+    )
+
+    cursor.execute(f"""
+        SELECT
+            COALESCE(SUM(v.total), 0) AS faturamento,
+            COUNT(*) AS qtd_vendas,
+            COALESCE(MAX(v.total), 0) AS maior_venda
+        FROM vendas v
+        WHERE {where_sql}
+    """, params)
+
+    row = cursor.fetchone()
+    conn.close()
+
+    faturamento = row["faturamento"] or 0
+    qtd_vendas = row["qtd_vendas"] or 0
+    ticket_medio = (faturamento / qtd_vendas) if qtd_vendas else 0
+
+    return {
+        "faturamento": faturamento,
+        "qtd_vendas": qtd_vendas,
+        "ticket_medio": ticket_medio,
+        "maior_venda": row["maior_venda"] or 0
+    }
+
+
+def get_dashboard_por_hora(data_inicio=None, data_fim=None, metodo=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    where_sql, params = _build_vendas_filters(
+        data_inicio, data_fim, metodo, somente_concluidas=True
+    )
+
+    cursor.execute(f"""
+        SELECT
+            CAST(strftime('%H', v.created_at) AS INTEGER) AS hora,
+            COUNT(*) AS qtd_vendas
+        FROM vendas v
+        WHERE {where_sql}
+        GROUP BY hora
+        ORDER BY hora
+    """, params)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [dict(row) for row in rows]
+
+
+def get_dashboard_por_vendedor(data_inicio=None, data_fim=None, metodo=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    where_sql, params = _build_vendas_filters(
+        data_inicio, data_fim, metodo, somente_concluidas=True
+    )
+
+    cursor.execute(f"""
+        SELECT
+            v.seller_name,
+            COALESCE(SUM(v.total), 0) AS faturamento,
+            COUNT(*) AS qtd_vendas,
+            CASE WHEN COUNT(*) > 0 THEN (SUM(v.total) / COUNT(*)) ELSE 0 END AS ticket_medio
+        FROM vendas v
+        WHERE {where_sql}
+        GROUP BY v.seller_id, v.seller_name
+        ORDER BY faturamento DESC
+    """, params)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [dict(row) for row in rows]
 
 # Retorna categorias agrupadas com seus itens
 def get_products_grouped():

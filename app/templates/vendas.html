@@ -1,142 +1,133 @@
 {% extends "base.html" %}
 
+{% block body_class %}vendas-body{% endblock %}
+{% block main_class %}vendas-main{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='vendas.css') }}">
 {% endblock %}
 
 {% block content %}
 
-
-<div class="vendas-container">
-
-  <!-- PRODUTOS -->
-  <section class="produtos-area">
-
-    <h2> Buscar Produto </h2>
-
-    <input 
-      type="text"
-      id="busca-produto"
-      placeholder="Nome, código ou categoria..."
-      autocomplete="off"
-    >
-
-    <div id="produtos-loading" class="hidden">
-      Buscando...
+<div class="vendas-page">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <input 
+        type="text"
+        id="busca-produto"
+        placeholder="Buscar produto por nome, código ou categoria..."
+        autocomplete="off"
+      >
     </div>
+  </div>
 
-    <ul id="lista-produtos"></ul>
+  <div class="vendas-container">
 
-  </section>
+    <!-- PRODUTOS -->
+    <section class="produtos-area">
+      <div class="produtos-header">Produtos</div>
 
-
-  <!-- CARRINHO -->
-  <section class="carrinho-area">
-
-    <h2>🛒 Carrinho</h2>
-
-    <form id="form-venda">
-
-      <!-- Vendedor -->
-      <div class="campo">
-
-        <label>Vendedor</label>
-
-        <select id="vendedor" required>
-          <option value="">Selecione</option>
-        </select>
-
+      <div id="produtos-loading" class="produtos-loading hidden">
+        Buscando...
       </div>
 
+      <div id="produtos-vazio" class="produtos-vazio hidden">
+        Nenhum produto encontrado.
+      </div>
 
-      <!-- Itens -->
-      <ul id="carrinho-lista"></ul>
+      <ul id="lista-produtos" class="produtos-lista"></ul>
+    </section>
 
+    <!-- CARRINHO -->
+    <section class="carrinho-area">
+      <div class="carrinho-title">Carrinho</div>
 
-      <!-- Totais -->
-      <div class="carrinho-totais">
+      <form id="form-venda" class="carrinho-form">
 
-        <div>
-          Subtotal:
-          R$ <span id="subtotal">0.00</span>
-        </div>
-
-
-        <div class="desconto-area">
-
-          <label>Desconto</label>
-
-          <input 
-            type="number"
-            id="desconto-valor"
-            step="0.01"
-            placeholder="0.00"
-          >
-
-          <select id="desconto-tipo">
-            <option value="reais">R$</option>
-            <option value="porcento">%</option>
+        <div class="linha">
+          <label>Vendedor</label>
+          <select id="vendedor" required>
+            <option value="">Selecione</option>
           </select>
-
         </div>
 
-      </div>
-
-
-      <!-- Total -->
-      <div class="total-box">
-        TOTAL: R$ <span id="total">0.00</span>
-      </div>
-
-
-      <!-- Pagamento -->
-      <div class="pagamento-area">
-
-        <label>Pagamento</label>
-
-        <select id="forma-pagamento" required>
-          <option value="">Selecione</option>
-          <option value="dinheiro">Dinheiro</option>
-          <option value="pix">Pix</option>
-          <option value="credito">Crédito</option>
-          <option value="debito">Débito</option>
-        </select>
-
-        <input 
-          type="number"
-          id="valor-pago"
-          step="0.01"
-          placeholder="Valor pago"
-        >
-
-        <div>
-          Troco: R$ <span id="troco">0.00</span>
+        <div class="carrinho-itens">
+          <div class="itens-header">
+            <span>Item</span>
+            <span>Qtd</span>
+            <span>Subtotal</span>
+            <span></span>
+          </div>
+          <div id="carrinho-lista" class="itens-body"></div>
+          <div id="carrinho-vazio" class="carrinho-vazio">
+            Nenhum item no carrinho.
+          </div>
         </div>
 
-      </div>
+        <div class="totais-box">
+          <div class="total-linha">
+            <span>Subtotal</span>
+            <span id="subtotal">R$ 0,00</span>
+          </div>
 
+          <div class="total-linha desconto-linha">
+            <span>Desconto</span>
+            <div class="desconto-controles">
+              <input 
+                type="number"
+                id="desconto-valor"
+                step="0.01"
+                placeholder="0,00"
+              >
+              <select id="desconto-tipo">
+                <option value="reais">R$</option>
+                <option value="porcento">%</option>
+              </select>
+            </div>
+          </div>
 
-      <!-- Mensagem -->
-      <div id="mensagem-venda"></div>
+          <div class="total-linha total-final">
+            <span>Total</span>
+            <span id="total">R$ 0,00</span>
+          </div>
+        </div>
 
+        <div class="pagamentos-area">
+          <div class="pagamentos-label">Pagamento</div>
+          <div id="pagamentos-lista"></div>
+          <button type="button" id="btn-add-pagamento" class="btn-add-pagamento">
+            + Adicionar pagamento
+          </button>
+        </div>
 
-      <!-- Ações -->
-      <div class="acoes">
+        <div class="linha" id="div-troco">
+          <label>Troco</label>
+          <div class="troco-valor">R$ <span id="troco">0,00</span></div>
+        </div>
 
-        <button type="button" id="btn-cancelar" class="btn-cancelar">
-          ❌ Cancelar
-        </button>
+        <div id="mensagem-venda" class="mensagem-venda"></div>
 
-        <button type="submit" class="btn-finalizar">
-          ✅ Finalizar
-        </button>
+        <div class="acoes">
+          <button type="button" id="btn-cancelar" class="btn-cancelar">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-finalizar">
+            Finalizar
+          </button>
+        </div>
 
-      </div>
+      </form>
+    </section>
 
-    </form>
-
-  </section>
-
+  </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    window.__PRODUTOS__ = {{ produtos|tojson }};
+    window.__VENDEDORES__ = {{ vendedores|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='vendas.js') }}"></script>
 {% endblock %}

@@ -44,18 +44,34 @@
 .topbar {
     background: var(--gc-sidebar);
     border-bottom: 0.5px solid var(--gc-border);
-    padding: 12px 20px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.topbar-inner {
+    width: 100%;
+    max-width: 720px;
 }
 
 .topbar input {
     width: 100%;
-    background: var(--gc-card);
-    border: 0.5px solid var(--gc-border-light);
-    border-radius: 8px;
-    padding: 8px 12px;
+    background: #2A2A2A;
+    border: 0.5px solid #3A3A3A;
+    border-radius: 10px;
+    padding: 10px 14px;
     color: var(--gc-text);
     font-size: 13px;
     outline: none;
+}
+
+.topbar input::placeholder {
+    color: #888888;
+}
+
+.topbar input:focus {
+    border-color: var(--gc-gold);
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.12);
 }
 
 .vendas-container {

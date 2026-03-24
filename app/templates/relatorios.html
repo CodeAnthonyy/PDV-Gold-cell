@@ -1,6 +1,9 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Relatórios - Gold Cell{% endblock %}
+{% block title %}Relatorios - Gold Cell{% endblock %}
+
+{% block body_class %}relatorios-body{% endblock %}
+{% block main_class %}relatorios-main{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{{ url_for('static', filename='relatorios.css') }}">
@@ -14,7 +17,7 @@
     <input type="date" id="data-inicio" />
     <input type="date" id="data-fim" />
     <select id="filtro-metodo">
-      <option value="">Todos os métodos</option>
+      <option value="">Todos os metodos</option>
       <option value="Dinheiro">Dinheiro</option>
       <option value="Crédito">Crédito</option>
       <option value="Débito">Débito</option>
@@ -22,7 +25,7 @@
     </select>
     <button onclick="filtrarHoje()">Hoje</button>
     <button onclick="filtrarSemana()">Esta semana</button>
-    <button onclick="filtrarMes()">Este mês</button>
+    <button onclick="filtrarMes()">Este mes</button>
     <button onclick="carregarTudo()">Filtrar</button>
   </div>
 
@@ -33,11 +36,11 @@
     </div>
     <div class="kpi-card">
       <span id="kpi-qtd">-</span>
-      <label>Nº de Vendas</label>
+      <label>N? de Vendas</label>
     </div>
     <div class="kpi-card">
       <span id="kpi-ticket">-</span>
-      <label>Ticket Médio</label>
+      <label>Ticket Medio</label>
     </div>
     <div class="kpi-card">
       <span id="kpi-maior">-</span>
@@ -47,7 +50,7 @@
 
   <div id="graficos-row">
     <div class="grafico-box">
-      <h3>Vendas por horário</h3>
+      <h3>Vendas por horario</h3>
       <canvas id="grafico-horas"></canvas>
     </div>
     <div class="grafico-box">
@@ -68,13 +71,13 @@
           <th>Total</th>
           <th>Pagamento</th>
           <th>Status</th>
-          <th>Ações</th>
+          <th>Acoes</th>
         </tr>
       </thead>
       <tbody id="tbody-vendas"></tbody>
     </table>
     <p id="tabela-vazia" style="display:none">
-      Nenhuma venda encontrada para o período.
+      Nenhuma venda encontrada para o periodo.
     </p>
   </div>
 
