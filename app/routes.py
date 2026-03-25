@@ -340,7 +340,7 @@ def register_routes(app):
 
     # -------- VENDEDORES --------
 
-    # Lista de vendedores
+    # Lista/busca de vendedores
     @app.route("/vendedores")
     def list_sellers():
         # Support optional edit via ?id=<seller_id> so the form can be shown on the same page
@@ -350,19 +350,13 @@ def register_routes(app):
         if seller_id:
             seller = get_seller_by_id(seller_id)
 
-        data = get_all_sellers()
-        return render_template("vendedores.html", data=data, seller=seller)
-
-
-    # Busca de vendedores
-    @app.route("/vendedores")
-    def vendedores():
-        search = request.args.get("search", "")
+        search = request.args.get("search", "").strip()
         if search:
             data = search_sellers(search)
         else:
             data = get_all_sellers()
-        return render_template("vendedores.html", data=data)
+
+        return render_template("vendedores.html", data=data, seller=seller)
 
     # Cadastro de vendedores
     @app.route("/vendedores/novo", methods=["GET", "POST"])
