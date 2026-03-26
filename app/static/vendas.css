@@ -541,6 +541,96 @@
     display: none;
 }
 
+.modal-cupom {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal-cupom.hidden {
+    display: none;
+}
+
+.modal-cupom-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.modal-cupom-card {
+    position: relative;
+    width: min(360px, 92vw);
+    background: #ffffff;
+    color: #111111;
+    border: 0.5px solid var(--gc-border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-cupom-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.modal-cupom-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.modal-cupom-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 0.5px solid var(--gc-border-light);
+    background: transparent;
+    color: #777777;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal-cupom-text {
+    margin: 0;
+    font-size: 12px;
+    color: #555555;
+}
+
+.modal-cupom-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.btn-cupom {
+    flex: 1;
+    border-radius: 8px;
+    font-size: 12px;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.btn-cupom-sec {
+    background: #ffffff;
+    border: 0.5px solid var(--gc-border-light);
+    color: #333333;
+}
+
+.btn-cupom-primary {
+    background: var(--gc-gold);
+    border: none;
+    color: #111111;
+    font-weight: 600;
+}
+
 @media (max-width: 960px) {
     .vendas-container {
         flex-direction: column;

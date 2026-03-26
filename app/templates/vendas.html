@@ -122,6 +122,27 @@
   </div>
 </div>
 
+<div id="modal-cupom" class="modal-cupom hidden" aria-hidden="true">
+  <div class="modal-cupom-backdrop" data-close="true"></div>
+  <div class="modal-cupom-card" role="dialog" aria-modal="true" aria-labelledby="modal-cupom-title">
+    <div class="modal-cupom-header">
+      <h3 id="modal-cupom-title">Venda concluida</h3>
+      <button type="button" class="modal-cupom-close" data-close="true">×</button>
+    </div>
+    <p id="modal-cupom-text" class="modal-cupom-text">
+      Sua venda foi registrada. Escolha como deseja gerar o cupom:
+    </p>
+    <div class="modal-cupom-actions">
+      <button type="button" id="btn-cupom-download" class="btn-cupom btn-cupom-sec">
+        Baixar cupom
+      </button>
+      <button type="button" id="btn-cupom-print" class="btn-cupom btn-cupom-primary">
+        Imprimir
+      </button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}

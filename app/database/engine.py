@@ -27,9 +27,25 @@ def init_db():
     cursor = conn.cursor()
 
     create_tables(cursor)
+    _ensure_vendas_columns(cursor)
 
     conn.commit()
     conn.close()
+
+
+def _ensure_vendas_columns(cursor):
+    cursor.execute("PRAGMA table_info(vendas)")
+    cols = {row["name"] for row in cursor.fetchall()}
+
+    if "desconto" not in cols:
+        cursor.execute(
+            "ALTER TABLE vendas ADD COLUMN desconto REAL NOT NULL DEFAULT 0"
+        )
+
+    if "desconto_tipo" not in cols:
+        cursor.execute(
+            "ALTER TABLE vendas ADD COLUMN desconto_tipo TEXT NOT NULL DEFAULT 'R$'"
+        )
 
 #adiciona categorias ao banco de dados
 def add_product (name):

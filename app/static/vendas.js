@@ -37,8 +37,14 @@
     const formVenda = document.getElementById("form-venda");
     const btnCancelar = document.getElementById("btn-cancelar");
 
+    const modalCupom = document.getElementById("modal-cupom");
+    const modalCupomText = document.getElementById("modal-cupom-text");
+    const btnCupomDownload = document.getElementById("btn-cupom-download");
+    const btnCupomPrint = document.getElementById("btn-cupom-print");
+
     const carrinho = new Map();
     let pagamentos = [{ metodo: "", valor: "" }];
+    let ultimaVenda = null;
 
     const formatBRL = (value) => new Intl.NumberFormat("pt-BR", {
         style: "currency",
@@ -58,6 +64,291 @@
     const limparMensagem = () => {
         mensagemEl.textContent = "";
         mensagemEl.classList.remove("sucesso");
+    };
+
+    const pad2 = (value) => String(value).padStart(2, "0");
+
+    const formatDateTime = (date) => {
+        const dia = pad2(date.getDate());
+        const mes = pad2(date.getMonth() + 1);
+        const ano = date.getFullYear();
+        const hora = pad2(date.getHours());
+        const minuto = pad2(date.getMinutes());
+        return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    };
+
+    const formatarPagamentoCupom = (pagamentosVenda) => {
+        const partes = pagamentosVenda
+            .filter((pag) => pag.metodo)
+            .map((pag) => {
+                const valor = parseFloat(pag.valor);
+                if (Number.isFinite(valor) && valor > 0) {
+                    return `${pag.metodo} ${formatBRL(valor)}`;
+                }
+                return pag.metodo;
+            });
+
+        return partes.length > 0 ? partes.join(" + ") : "Nao informado";
+    };
+
+    const escapeHTML = (value) => {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    };
+
+    const criarVendaParaCupom = (
+        vendaId,
+        totalVenda,
+        descontoAplicado,
+        troco,
+        vendedorNome
+    ) => {
+        const numero = vendaId ? String(vendaId).padStart(6, "0") : "000000";
+        const dataVenda = formatDateTime(new Date());
+        const itens = Array.from(carrinho.values()).map((item) => ({
+            name: item.name,
+            qty: item.qtd,
+            price: item.price
+        }));
+
+        return {
+            number: numero,
+            date: dataVenda,
+            seller: vendedorNome || "",
+            payment: formatarPagamentoCupom(pagamentos),
+            items: itens,
+            total: totalVenda,
+            discount: Number(descontoAplicado) || 0,
+            change: Number(troco) || 0
+        };
+    };
+
+    const abrirModalCupom = (venda) => {
+        if (!modalCupom) return;
+        ultimaVenda = venda;
+        if (modalCupomText) {
+            modalCupomText.textContent = `Venda #${venda.number} concluida. Escolha como deseja gerar o cupom:`;
+        }
+        modalCupom.classList.remove("hidden");
+        modalCupom.setAttribute("aria-hidden", "false");
+    };
+
+    const fecharModalCupom = () => {
+        if (!modalCupom) return;
+        modalCupom.classList.add("hidden");
+        modalCupom.setAttribute("aria-hidden", "true");
+    };
+
+    const generateReceiptPDF = (sale, action = "print") => {
+        const discountValue = Number(sale.discount || 0);
+        const changeValue = Number(sale.change || 0);
+        const hasDiscount = discountValue > 0;
+        const hasChange = changeValue > 0;
+
+        const rows = sale.items
+            .map((item) => {
+                const subtotal = (item.qty * item.price).toFixed(2);
+                return `
+                    <tr>
+                      <td>${escapeHTML(item.name)}</td>
+                      <td>${item.qty}</td>
+                      <td>${item.price.toFixed(2)}</td>
+                      <td>${subtotal}</td>
+                    </tr>
+                `;
+            })
+            .join("");
+
+        const descontoHTML = hasDiscount
+            ? `<p class="desconto">Desconto: - ${formatBRL(discountValue)}</p>`
+            : "";
+
+        const trocoHTML = hasChange
+            ? `<br>Troco: ${formatBRL(changeValue)}`
+            : "";
+
+        const html = `
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Cupom A4</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    padding: 20mm;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .info {
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #aaa;
+    margin: 12px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 2px solid black;
+    font-size: 14px;
+  }
+
+  td {
+    text-align: left;
+    padding: 10px 6px;
+    font-size: 14px;
+  }
+
+  .desconto {
+    text-align: right;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+
+  .total {
+    text-align: right;
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 8px;
+  }
+
+  .footer {
+    margin-top: 20px;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .agradecimento {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 14px;
+  }
+
+  .aviso {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  @media print {
+    body {
+      background: none;
+      padding: 0;
+    }
+    .page {
+      box-shadow: none;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 20mm;
+    }
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>GOLD CELL FRANCO LTDA</h1>
+  <div class="info">
+    CNPJ: 29.552.240/0001-80 <br>
+    Av. dos Expedicionarios, 77 - Loja 141 <br>
+    Franco da Rocha - CEP: 07803-010 <br>
+    No. ${escapeHTML(sale.number)} &nbsp;&nbsp; ${escapeHTML(sale.date)} <br>
+    Vendedor: ${escapeHTML(sale.seller || "Nao informado")}
+  </div>
+
+  <hr>
+
+  <table>
+    <tr>
+      <th>ITEM</th>
+      <th>QTD</th>
+      <th>UNIT</th>
+      <th>TOTAL</th>
+    </tr>
+    ${rows}
+  </table>
+
+  <hr>
+
+  ${descontoHTML}
+  <p class="total">TOTAL: ${formatBRL(sale.total)}</p>
+
+  <div class="footer">
+    Pagamento: ${escapeHTML(sale.payment)}
+    ${trocoHTML}
+  </div>
+
+  <div class="agradecimento">
+    Obrigado pela preferencia!
+  </div>
+  <div class="aviso">
+    Para produtos eletrônicos, o prazo para troca é de até 30 dias, mediante apresentação deste cupom fiscal, com o produto em perfeito estado de conservação e acompanhado de sua embalagem original.
+  </div>
+</div>
+</body>
+</html>
+        `;
+
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            mostrarMensagem("Nao foi possivel abrir a janela do cupom.");
+            return;
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        const normalizedAction = action === "imprimir" ? "print" : action;
+        if (normalizedAction === "print" || normalizedAction === "download") {
+            printWindow.onload = () => {
+                printWindow.focus();
+                printWindow.print();
+            };
+        }
     };
 
     const preencherVendedores = () => {
@@ -289,7 +580,7 @@
         trocoContainer.style.display = temDinheiro ? "flex" : "none";
         trocoEl.textContent = formatBRL(troco);
 
-        return { subtotal, total, totalPago };
+        return { subtotal, total, totalPago, descontoAplicado, troco };
     };
 
     const renderCarrinho = () => {
@@ -384,6 +675,37 @@
         resetVenda();
     });
 
+    if (modalCupom) {
+        modalCupom.addEventListener("click", (event) => {
+            const target = event.target;
+            if (target && target.dataset && target.dataset.close === "true") {
+                fecharModalCupom();
+            }
+        });
+    }
+
+    if (btnCupomPrint) {
+        btnCupomPrint.addEventListener("click", () => {
+            if (!ultimaVenda) return;
+            generateReceiptPDF(ultimaVenda, "print");
+            fecharModalCupom();
+        });
+    }
+
+    if (btnCupomDownload) {
+        btnCupomDownload.addEventListener("click", () => {
+            if (!ultimaVenda) return;
+            generateReceiptPDF(ultimaVenda, "download");
+            fecharModalCupom();
+        });
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            fecharModalCupom();
+        }
+    });
+
     formVenda.addEventListener("submit", async (event) => {
         event.preventDefault();
         limparMensagem();
@@ -407,7 +729,8 @@
             return;
         }
 
-        const { subtotal, total, totalPago } = calcularTotais();
+        const { subtotal, total, totalPago, descontoAplicado, troco } =
+            calcularTotais();
 
         if (totalPago < total) {
             mostrarMensagem("Valor pago insuficiente.");
@@ -424,7 +747,7 @@
         );
 
         if (!vendedorSelecionado) {
-            mostrarMensagem("Vendedor invÃ¡lido.");
+            mostrarMensagem("Vendedor invalido.");
             return;
         }
 
@@ -466,18 +789,26 @@
             }
 
             if (res.ok) {
+                const vendaCupom = criarVendaParaCupom(
+                    data.id,
+                    total,
+                    descontoAplicado,
+                    troco,
+                    vendedorSelecionado.name
+                );
                 mostrarMensagem(
                     `Venda #${data.id} registrada com sucesso!`,
                     "sucesso"
                 );
                 resetVenda();
+                abrirModalCupom(vendaCupom);
             } else {
                 mostrarMensagem(
                     data.erro || "Erro ao salvar a venda. Tente novamente."
                 );
             }
         } catch (err) {
-            mostrarMensagem(`Erro de conexÃ£o: ${err.message}`);
+            mostrarMensagem(`Erro de conexao: ${err.message}`);
         }
     });
 
