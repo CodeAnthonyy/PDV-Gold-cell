@@ -29,15 +29,15 @@
 }
 
 .vendas-body .sidebar {
-    background: var(--gc-sidebar);
+    background: #000000;
 }
 
 .vendas-body .menu button {
-    background-color: #1A1A1A;
+    background-color: #111111;
 }
 
 .vendas-body .menu button:hover {
-    background-color: #2A2A2A;
+    background-color: #333333;
 }
 
 .vendas-page {

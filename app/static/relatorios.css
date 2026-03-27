@@ -1,28 +1,28 @@
 ﻿.relatorios-body {
-  background: #1C1C1C;
+  background: #ffffff;
 }
 
 .relatorios-body .sidebar {
-  background: #111111;
+  background: #000000;
 }
 
 .relatorios-body .menu button {
-  background-color: #1A1A1A;
+  background-color: #111111;
 }
 
 .relatorios-body .menu button:hover {
-  background-color: #2A2A2A;
+  background-color: #333333;
 }
 
 .relatorios-main {
   padding: 0;
-  background: #1C1C1C;
-  color: #eee;
+  background: #ffffff;
+  color: #111;
 }
 
 ﻿#relatorios-page {
   padding: 26px 20px 20px;
-  color: #eee;
+  color: #111;
 }
 
 #filtros-bar {
@@ -34,26 +34,26 @@
   flex-wrap: wrap;
 }
 #filtros-bar input[type='date'] {
-  background: #222;
-  border: 0.5px solid #444;
+  background: #ffffff;
+  border: 0.5px solid #cfcfcf;
   border-radius: 8px;
   padding: 7px 10px;
-  color: #eee;
+  color: #111;
   font-size: 13px;
 }
 #filtros-bar select {
-  background: #222;
-  border: 0.5px solid #444;
+  background: #ffffff;
+  border: 0.5px solid #cfcfcf;
   border-radius: 8px;
   padding: 7px 10px;
-  color: #eee;
+  color: #111;
   font-size: 13px;
 }
 #filtros-bar button {
-  background: #222;
-  border: 0.5px solid #555;
+  background: #f5f5f5;
+  border: 0.5px solid #d0d0d0;
   border-radius: 8px;
-  color: #FFD700;
+  color: #333;
   font-size: 13px;
   padding: 7px 14px;
   cursor: pointer;
@@ -86,8 +86,8 @@
   margin-bottom: 24px;
 }
 .kpi-card {
-  background: #222;
-  border: 0.5px solid #333;
+  background: #ffffff;
+  border: 0.5px solid #e0e0e0;
   border-radius: 10px;
   padding: 14px 16px;
   display: flex;
@@ -101,7 +101,7 @@
 }
 .kpi-card label {
   font-size: 12px;
-  color: #888;
+  color: #666;
 }
 
 #graficos-row {
@@ -111,8 +111,8 @@
   margin-bottom: 24px;
 }
 .grafico-box {
-  background: #1a1a1a;
-  border: 0.5px solid #333;
+  background: #ffffff;
+  border: 0.5px solid #e0e0e0;
   border-radius: 10px;
   padding: 16px;
 }
@@ -126,8 +126,8 @@
 }
 
 #tabela-box {
-  background: #1a1a1a;
-  border: 0.5px solid #333;
+  background: #ffffff;
+  border: 0.5px solid #e0e0e0;
   border-radius: 10px;
   padding: 16px;
 }
@@ -147,24 +147,24 @@
 #tabela-vendas th {
   text-align: left;
   padding: 8px 10px;
-  color: #888;
-  border-bottom: 0.5px solid #333;
+  color: #666;
+  border-bottom: 0.5px solid #e0e0e0;
   font-weight: 400;
 }
 #tabela-vendas td {
   padding: 9px 10px;
-  color: #ccc;
-  border-bottom: 0.5px solid #222;
+  color: #333;
+  border-bottom: 0.5px solid #f0f0f0;
 }
-#tabela-vendas tr:hover td { background: #222; }
+#tabela-vendas tr:hover td { background: #f7f7f7; }
 .badge-concluida { color: #5A9A5A; font-size: 11px; }
 .badge-cancelada { color: #CC4444; font-size: 11px; }
 .badge-editada   { color: #CCAA00; font-size: 11px; }
 .btn-acao {
   background: none;
-  border: 0.5px solid #444;
+  border: 0.5px solid #cccccc;
   border-radius: 6px;
-  color: #aaa;
+  color: #555;
   font-size: 11px;
   padding: 3px 8px;
   cursor: pointer;
@@ -172,6 +172,163 @@
 }
 .btn-acao:hover { border-color: #FFD700; color: #FFD700; }
 .btn-cancelar-venda:hover { border-color: #CC4444; color: #CC4444; }
+
+
+.hidden {
+  display: none;
+}
+
+.modal-venda {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.modal-venda.hidden {
+  display: none;
+}
+
+.modal-venda-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.modal-venda-card {
+  position: relative;
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: #ffffff;
+  color: #111111;
+  border: 0.5px solid #dddddd;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-venda-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.modal-venda-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.modal-venda-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 0.5px solid #cccccc;
+  background: transparent;
+  color: #777777;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal-venda-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  font-size: 12px;
+  color: #666666;
+}
+
+.modal-venda-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0.5px solid #eeeeee;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.modal-venda-info strong {
+  color: #111111;
+  font-weight: 600;
+}
+
+.modal-venda-section h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #444444;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-venda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-venda-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+
+.modal-venda-linha span {
+  color: #333333;
+}
+
+.modal-venda-linha strong {
+  color: #111111;
+  font-weight: 600;
+}
+
+.modal-venda-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 0.5px solid #eeeeee;
+  background: #fff9e6;
+}
+
+.modal-venda-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-venda {
+  flex: 1;
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.btn-venda-sec {
+  background: #ffffff;
+  border: 0.5px solid #cccccc;
+  color: #333333;
+}
+
+.btn-venda-primary {
+  background: #FFD700;
+  border: none;
+  color: #111111;
+  font-weight: 600;
+}
 
 @media (max-width: 1100px) {
   #kpis-grid {

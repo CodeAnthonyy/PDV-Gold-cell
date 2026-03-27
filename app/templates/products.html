@@ -56,7 +56,8 @@
                             <button class="btn-edit" style="font-size: 12px;">Editar</button>
                         </a>
                         <a href="/categoria/remover/{{ product_id }}"
-                           onclick="return confirm('Deseja realmente remover esta categoria?')">
+                           class="js-delete-categoria"
+                           data-id="{{ product_id }}">
                             <button class="btn-delete" style="font-size: 12px;">Remover</button>
                         </a>
                     </div>
@@ -78,7 +79,8 @@
                         <button class="btn-edit">Editar</button>
                     </a>
                     <a href="/produtos/remover/{{ item['id'] }}"
-                       onclick="return confirm('Deseja realmente remover este item?')">
+                       class="js-delete-item"
+                       data-id="{{ item['id'] }}">
                         <button class="btn-delete">Remover</button>
                     </a>
                 </td>
@@ -100,7 +102,8 @@
                             <button class="btn-edit" style="font-size: 12px;">Editar</button>
                         </a>
                         <a href="/categoria/remover/{{ product_id }}"
-                           onclick="return confirm('Deseja realmente remover esta categoria?')">
+                           class="js-delete-categoria"
+                           data-id="{{ product_id }}">
                             <button class="btn-delete" style="font-size: 12px;">Remover</button>
                         </a>
                     </div>
@@ -110,6 +113,155 @@
     {% endfor %}
 
 </table>
+
+<div id="modal-admin" class="modal-admin hidden" aria-hidden="true">
+  <div class="modal-admin-backdrop" data-close="true"></div>
+  <div class="modal-admin-card" role="dialog" aria-modal="true" aria-labelledby="modal-admin-title">
+    <div class="modal-admin-header">
+      <h3 id="modal-admin-title">Confirmar exclusao</h3>
+      <button type="button" class="modal-admin-close" data-close="true">×</button>
+    </div>
+    <p id="modal-admin-msg" class="modal-admin-text">Digite a senha do admin para confirmar.</p>
+    <label class="modal-admin-label" for="modal-admin-pass">Senha do admin</label>
+    <input id="modal-admin-pass" type="password" autocomplete="current-password" />
+    <p id="modal-admin-error" class="modal-admin-error hidden"></p>
+    <div class="modal-admin-actions">
+      <button type="button" id="modal-admin-confirm" class="modal-admin-btn modal-admin-primary">
+        Confirmar
+      </button>
+      <button type="button" class="modal-admin-btn modal-admin-sec" data-close="true">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("modal-admin");
+    const modalMsg = document.getElementById("modal-admin-msg");
+    const modalPass = document.getElementById("modal-admin-pass");
+    const modalError = document.getElementById("modal-admin-error");
+    const btnConfirm = document.getElementById("modal-admin-confirm");
+
+    let pendingUrl = null;
+
+    const abrirModal = (mensagem, url) => {
+      pendingUrl = url;
+      if (modalMsg) modalMsg.textContent = mensagem;
+      if (modalError) {
+        modalError.textContent = "";
+        modalError.classList.add("hidden");
+      }
+      if (modalPass) modalPass.value = "";
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+      setTimeout(() => modalPass && modalPass.focus(), 0);
+    };
+
+    const fecharModal = () => {
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+      pendingUrl = null;
+    };
+
+    const executarRemocao = async (url, senha) => {
+      let response;
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ senha })
+        });
+      } catch (err) {
+        if (modalError) {
+          modalError.textContent = "Nao foi possivel enviar a solicitacao.";
+          modalError.classList.remove("hidden");
+        }
+        return;
+      }
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (err) {
+        data = {};
+      }
+
+      if (!response.ok) {
+        if (modalError) {
+          modalError.textContent = data.erro || "Nao foi possivel remover.";
+          modalError.classList.remove("hidden");
+        }
+        return;
+      }
+
+      fecharModal();
+      window.location.reload();
+    };
+
+    if (modal) {
+      modal.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target && target.dataset && target.dataset.close === "true") {
+          fecharModal();
+        }
+      });
+    }
+
+    if (btnConfirm) {
+      btnConfirm.addEventListener("click", () => {
+        if (!pendingUrl) return;
+        const senha = (modalPass?.value || "").trim();
+        if (!senha) {
+          if (modalError) {
+            modalError.textContent = "Informe a senha do admin.";
+            modalError.classList.remove("hidden");
+          }
+          return;
+        }
+        executarRemocao(pendingUrl, senha);
+      });
+    }
+
+    if (modalPass) {
+      modalPass.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          btnConfirm?.click();
+        }
+      });
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        fecharModal();
+      }
+    });
+
+    document.querySelectorAll(".js-delete-categoria").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        abrirModal(
+          "Confirmar exclusao da categoria? Digite a senha do admin.",
+          link.getAttribute("href")
+        );
+      });
+    });
+
+    document.querySelectorAll(".js-delete-item").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        abrirModal(
+          "Confirmar exclusao do item? Digite a senha do admin.",
+          link.getAttribute("href")
+        );
+      });
+    });
+  });
+</script>
 
 {% endblock %}
 

@@ -120,3 +120,111 @@
 .btn-delete:hover {
     background: #c0392b;
 }
+
+.modal-admin {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+}
+
+.modal-admin.hidden {
+    display: none;
+}
+
+.modal-admin-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.modal-admin-card {
+    position: relative;
+    width: min(420px, 92vw);
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.modal-admin-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.modal-admin-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #cccccc;
+    background: transparent;
+    color: #777777;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal-admin-text {
+    margin: 0;
+    font-size: 12px;
+    color: #555555;
+}
+
+.modal-admin-label {
+    font-size: 12px;
+    color: #555555;
+}
+
+#modal-admin-pass {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.modal-admin-error {
+    margin: 0;
+    font-size: 12px;
+    color: #c0392b;
+}
+
+.modal-admin-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.modal-admin-btn {
+    flex: 1;
+    border-radius: 8px;
+    font-size: 12px;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.modal-admin-sec {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    color: #333333;
+}
+
+.modal-admin-primary {
+    background: #000000;
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+}

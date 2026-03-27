@@ -30,7 +30,8 @@ from database.engine import (
     cancelar_venda,
     get_dashboard_resumo,
     get_dashboard_por_hora,
-    get_dashboard_por_vendedor
+    get_dashboard_por_vendedor,
+    verify_admin_password
 )
 
 from auth import autenticar_usuario, registrar_novo_usuario
@@ -315,27 +316,40 @@ def register_routes(app):
 
 
     # Deletar categoria
-    @app.route("/categoria/remover/<int:product_id>")
+    @app.route("/categoria/remover/<int:product_id>", methods=["POST"])
     def remover_categoria(product_id):
-        
-        # Verificar se tem itens
-        if product_has_items(product_id):
-            from flask import jsonify
-            return render_template(
-                "erro_categoria.html",
-                message="Não é possível remover esta categoria pois ela possui itens relacionados. Remova ou altere os itens primeiro."
-            )
-        
-        # Se não tiver itens, deleta
-        delete_product(product_id)
-        return redirect("/produtos")
+        if "usuario" not in session:
+            return jsonify({"erro": "Nao autenticado"}), 401
+
+        payload = request.get_json() or {}
+        senha = (payload.get("senha") or "").strip()
+
+        if not verify_admin_password(senha):
+            return jsonify({"erro": "Senha de admin invalida"}), 403
+
+        ok = delete_product(product_id)
+        if not ok:
+            return jsonify({
+                "erro": "Nao e possivel remover esta categoria pois ela possui itens relacionados. Remova ou altere os itens primeiro."
+            }), 400
+
+        return jsonify({"ok": True})
 
 
     # Remover item
-    @app.route("/produtos/remover/<int:item_id>")
+    @app.route("/produtos/remover/<int:item_id>", methods=["POST"])
     def remover_produto(item_id):
+        if "usuario" not in session:
+            return jsonify({"erro": "Nao autenticado"}), 401
+
+        payload = request.get_json() or {}
+        senha = (payload.get("senha") or "").strip()
+
+        if not verify_admin_password(senha):
+            return jsonify({"erro": "Senha de admin invalida"}), 403
+
         delete_item(item_id)
-        return redirect("/produtos")
+        return jsonify({"ok": True})
 
 
     # -------- VENDEDORES --------

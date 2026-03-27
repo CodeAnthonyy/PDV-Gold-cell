@@ -81,6 +81,50 @@
     </p>
   </div>
 
+  <div id="modal-venda" class="modal-venda hidden" aria-hidden="true">
+    <div class="modal-venda-backdrop" data-close="true"></div>
+    <div class="modal-venda-card" role="dialog" aria-modal="true" aria-labelledby="modal-venda-title">
+      <div class="modal-venda-header">
+        <h3 id="modal-venda-title">Detalhes da venda</h3>
+        <button type="button" class="modal-venda-close" data-close="true">×</button>
+      </div>
+      <div class="modal-venda-info">
+        <div>
+          <span>Venda</span>
+          <strong id="modal-venda-id">-</strong>
+        </div>
+        <div>
+          <span>Data</span>
+          <strong id="modal-venda-data">-</strong>
+        </div>
+        <div>
+          <span>Vendedor</span>
+          <strong id="modal-venda-vendedor">-</strong>
+        </div>
+        <div>
+          <span>Status</span>
+          <strong id="modal-venda-status">-</strong>
+        </div>
+      </div>
+      <div class="modal-venda-section">
+        <h4>Itens</h4>
+        <div id="modal-venda-itens" class="modal-venda-list"></div>
+      </div>
+      <div class="modal-venda-section">
+        <h4>Pagamentos</h4>
+        <div id="modal-venda-pagamentos" class="modal-venda-list"></div>
+      </div>
+      <div class="modal-venda-total">
+        <span>Total</span>
+        <strong id="modal-venda-total">-</strong>
+      </div>
+      <div class="modal-venda-actions">
+        <button type="button" id="btn-venda-print" class="btn-venda btn-venda-primary">Imprimir cupom</button>
+        <button type="button" class="btn-venda btn-venda-sec" data-close="true">Fechar</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 {% endblock %}

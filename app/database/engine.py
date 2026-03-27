@@ -1,20 +1,55 @@
 import sqlite3
 import os
+import sys
+import shutil
 import bcrypt
 import json
 from datetime import datetime
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IS_FROZEN = getattr(sys, "frozen", False)
+
+def _get_data_dir():
+    if IS_FROZEN:
+        base = os.environ.get("APPDATA") or os.path.expanduser("~")
+        data_dir = os.path.join(base, "PDV-Gold-Cell")
+        os.makedirs(data_dir, exist_ok=True)
+        return data_dir
+    return BASE_DIR
+
+DATA_DIR = _get_data_dir()
 
 # Nome do banco
-DB_PATH = os.path.join(BASE_DIR, "products.db")
+DB_PATH = os.path.join(DATA_DIR, "products.db")
 
 # Arquivo de credenciais
-CREDENTIALS_FILE = os.path.join(os.path.dirname(BASE_DIR), "credentials.json")
+if IS_FROZEN:
+    CREDENTIALS_FILE = os.path.join(DATA_DIR, "credentials.json")
+else:
+    CREDENTIALS_FILE = os.path.join(os.path.dirname(BASE_DIR), "credentials.json")
+
+def _bundle_db_path():
+    if not IS_FROZEN:
+        return None
+    candidate = os.path.join(getattr(sys, "_MEIPASS", ""), "app", "database", "products.db")
+    return candidate if os.path.exists(candidate) else None
+
+def _ensure_db_exists():
+    if os.path.exists(DB_PATH):
+        return
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    src = _bundle_db_path()
+    if src:
+        try:
+            shutil.copy2(src, DB_PATH)
+            return
+        except Exception:
+            pass
 
 
 def get_connection():
+    _ensure_db_exists()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -757,6 +792,28 @@ def login_user(usuario, senha):
         }
     else:
         return {"status": False, "message": "Senha incorreta!"}
+
+
+def verify_admin_password(senha):
+    """Verifica se a senha pertence a algum usuario admin"""
+    if not senha:
+        return False
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT senha FROM usuarios WHERE cargo = 'admin'")
+    rows = cursor.fetchall()
+    conn.close()
+
+    for row in rows:
+        hash_senha = row["senha"]
+        try:
+            if verify_password(senha, hash_senha):
+                return True
+        except Exception:
+            continue
+
+    return False
 
 def save_credentials(usuario, cargo):
     """Salva as credenciais em um arquivo JSON"""
