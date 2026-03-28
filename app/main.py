@@ -1,11 +1,17 @@
 import os
 import sys
+import threading
+import webbrowser
 from flask import Flask
 from database.engine import init_db
 from database.engine import add_product
 from database.engine import add_item
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IS_FROZEN = getattr(sys, "frozen", False)
+
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 def _resource_path(*parts):
     if getattr(sys, "frozen", False):
@@ -26,4 +32,11 @@ register_routes(app)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", "5000"))
+    host = "127.0.0.1"
+    url = f"http://{host}:{port}/"
+
+    if IS_FROZEN:
+        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+
+    app.run(host=host, port=port, debug=not IS_FROZEN, use_reloader=not IS_FROZEN)
