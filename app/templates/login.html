@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -46,28 +46,6 @@
             font-size: 14px;
         }
 
-        .tabs {
-            display: flex;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            color: #888;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            border-bottom-color: #ffd700;
-            color: #ffd700;
-        }
-
         .form-group {
             margin-bottom: 20px;
         }
@@ -97,14 +75,6 @@
             outline: none;
             border-color: #ffd700;
             box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-        }
-
-        .form-content {
-            display: none;
-        }
-
-        .form-content.active {
-            display: block;
         }
 
         button {
@@ -155,27 +125,6 @@
             border-left-color: #f44336;
         }
 
-        .alert-info {
-            background-color: #1a2a3a;
-            color: #64b5f6;
-            border-left-color: #2196f3;
-        }
-
-        .first-user-info {
-            background-color: #2a2a1a;
-            color: #ffd700;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            display: none;
-            border-left: 4px solid #ffd700;
-        }
-
-        .first-user-info.show {
-            display: block;
-        }
-
         @media (max-width: 600px) {
             .login-container {
                 margin: 20px;
@@ -191,30 +140,15 @@
 <body>
     <div class="login-container">
         <div class="logo">
-            <h1> PDV Gold</h1>
+            <h1>PDV Gold</h1>
             <p>Sistema de Ponto de Venda</p>
         </div>
 
-        <!-- Abas de Login/Registro -->
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('login')">
-                Login
-            </div>
-            <div class="tab" onclick="switchTab('register')">
-                Registrar
-            </div>
-        </div>
-
-        <!-- Alertas -->
         <div id="alert" class="alert"></div>
-        <div id="firstUserInfo" class="first-user-info">
-            ℹ️ Nenhum usuário cadastrado. O primeiro usuário será <strong>ADMIN</strong>.
-        </div>
 
-        <!-- Formulário de Login -->
-        <form id="loginForm" class="form-content active" onsubmit="handleLogin(event)">
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label for="loginUser">Usuário:</label>
+                <label for="loginUser">Usuario:</label>
                 <input type="text" id="loginUser" name="usuario" required>
             </div>
 
@@ -225,45 +159,10 @@
 
             <button type="submit">Entrar</button>
         </form>
-
-        <!-- Formulário de Registro -->
-        <form id="registerForm" class="form-content" onsubmit="handleRegister(event)">
-            <div class="form-group">
-                <label for="registerUser">Criar Usuário:</label>
-                <input type="text" id="registerUser" name="usuario" required>
-            </div>
-
-            <div class="form-group">
-                <label for="registerPass">Crie uma Senha:</label>
-                <input type="password" id="registerPass" name="senha" required>
-            </div>
-
-            <div class="form-group">
-                <label for="registerPassConfirm">Confirme a Senha:</label>
-                <input type="password" id="registerPassConfirm" name="senha_confirm" required>
-            </div>
-
-            <button type="submit">Registrar</button>
-        </form>
     </div>
 
     <script>
-        // Muda entre abas
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.form-content').forEach(f => f.classList.remove('active'));
-
-            if (tab === 'login') {
-                document.querySelector('[onclick*="login"]').classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
-            } else {
-                document.querySelector('[onclick*="register"]').classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
-            }
-        }
-
-        // Exibe alertas
-        function showAlert(message, type = 'info') {
+        function showAlert(message, type = 'error') {
             const alert = document.getElementById('alert');
             alert.textContent = message;
             alert.className = `alert show alert-${type}`;
@@ -273,7 +172,6 @@
             }, 5000);
         }
 
-        // Handle Login
         async function handleLogin(e) {
             e.preventDefault();
 
@@ -303,61 +201,6 @@
                 showAlert('Erro ao conectar com o servidor', 'error');
             }
         }
-
-        // Handle Register
-        async function handleRegister(e) {
-            e.preventDefault();
-
-            const usuario = document.getElementById('registerUser').value;
-            const senha = document.getElementById('registerPass').value;
-            const senhaConfirm = document.getElementById('registerPassConfirm').value;
-
-            if (senha !== senhaConfirm) {
-                showAlert('As senhas não coincidem!', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ usuario, senha })
-                });
-
-                const data = await response.json();
-
-                if (data.status) {
-                    showAlert(data.message + ` (${data.cargo})`, 'success');
-                    document.getElementById('registerForm').reset();
-                    setTimeout(() => {
-                        switchTab('login');
-                    }, 1500);
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            } catch (error) {
-                showAlert('Erro ao conectar com o servidor', 'error');
-            }
-        }
-
-        // Verifica se é primeiro usuário
-        async function checkFirstUser() {
-            try {
-                const response = await fetch('/api/check-first-user');
-                const data = await response.json();
-
-                if (data.is_first_user) {
-                    document.getElementById('firstUserInfo').classList.add('show');
-                }
-            } catch (error) {
-                console.log('Erro ao verificar primeiro usuário');
-            }
-        }
-
-        // Executa ao carregar
-        checkFirstUser();
     </script>
 </body>
 </html>

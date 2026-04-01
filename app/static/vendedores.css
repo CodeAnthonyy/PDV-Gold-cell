@@ -124,3 +124,27 @@
     cursor: pointer;
     border-radius: 4px;
 }
+
+.user-register-alert {
+    display: none;
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.user-register-alert.show {
+    display: block;
+}
+
+.user-register-alert.success {
+    background: #1f4b2a;
+    color: #d9f5e1;
+    border: 1px solid #2f7d46;
+}
+
+.user-register-alert.error {
+    background: #4b1f1f;
+    color: #ffd9d9;
+    border: 1px solid #9e3d3d;
+}

@@ -1,51 +1,20 @@
 import sqlite3
 import os
-import sys
-import shutil
 import bcrypt
 import json
 from datetime import datetime
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-IS_FROZEN = getattr(sys, "frozen", False)
-
-def _get_data_dir():
-    if IS_FROZEN:
-        base = os.environ.get("APPDATA") or os.path.expanduser("~")
-        data_dir = os.path.join(base, "PDV-Gold-Cell")
-        os.makedirs(data_dir, exist_ok=True)
-        return data_dir
-    return BASE_DIR
-
-DATA_DIR = _get_data_dir()
 
 # Nome do banco
-DB_PATH = os.path.join(DATA_DIR, "products.db")
+DB_PATH = os.path.join(BASE_DIR, "products.db")
 
 # Arquivo de credenciais
-if IS_FROZEN:
-    CREDENTIALS_FILE = os.path.join(DATA_DIR, "credentials.json")
-else:
-    CREDENTIALS_FILE = os.path.join(os.path.dirname(BASE_DIR), "credentials.json")
-
-def _bundle_db_path():
-    if not IS_FROZEN:
-        return None
-    candidate = os.path.join(getattr(sys, "_MEIPASS", ""), "app", "database", "products.db")
-    return candidate if os.path.exists(candidate) else None
+CREDENTIALS_FILE = os.path.join(os.path.dirname(BASE_DIR), "credentials.json")
 
 def _ensure_db_exists():
-    if os.path.exists(DB_PATH):
-        return
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    src = _bundle_db_path()
-    if src:
-        try:
-            shutil.copy2(src, DB_PATH)
-            return
-        except Exception:
-            pass
 
 
 def get_connection():
@@ -127,21 +96,6 @@ def update_product(product_id, name):
     conn.commit()
     conn.close()
     print("categoria atualizada com sucesso")
-
-# Verificar se produto tem itens
-def product_has_items(product_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT COUNT(*) FROM items
-        WHERE product_id = ?
-    """, (product_id,))
-
-    count = cursor.fetchone()[0]
-    conn.close()
-
-    return count > 0
 
 # Deletar categoria - só se não tiver itens
 def delete_product(product_id):
@@ -263,30 +217,6 @@ def get_products_with_items():
         LEFT JOIN items i ON p.id = i.product_id
         ORDER BY p.id
     """)
-
-    rows = cursor.fetchall()
-    conn.close()
-
-    return rows
-
-# buscar categorias no banco (tem filtro)
-def search_products(text=""):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT 
-            p.id,
-            p.name,
-            i.id,
-            i.name,
-            i.price,
-            i.stock
-        FROM categorias p
-        LEFT JOIN items i ON p.id = i.product_id
-        WHERE p.name LIKE ?
-        ORDER BY p.id
-    """, (f"%{text}%",))
 
     rows = cursor.fetchall()
     conn.close()
@@ -845,16 +775,8 @@ def save_credentials(usuario, cargo):
     except Exception as e:
         print(f"Erro ao salvar credenciais: {str(e)}")
 
-def get_all_users():
-    """Lista todos os usuários registrados"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT id, usuario, cargo FROM usuarios ORDER BY id")
-    users = cursor.fetchall()
-    conn.close()
-    
-    return users# Buscar categorias agrupadas com filtro
+ 
+# Buscar categorias agrupadas com filtro
 def search_products_grouped(text=""):
     conn = get_connection()
     cursor = conn.cursor()

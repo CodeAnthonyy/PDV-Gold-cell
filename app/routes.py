@@ -2,7 +2,6 @@ from flask import render_template, request, redirect, flash, jsonify, session
 
 from database.engine import (
     get_products_with_items,
-    search_products,
     add_product,
     add_item,
     add_seller,
@@ -19,11 +18,8 @@ from database.engine import (
     get_product_by_id,
     update_product,
     delete_product,
-    product_has_items,
     get_all_products,
     get_total_users,
-    login_user,
-    register_user,
     add_venda,
     get_vendas,
     get_venda_by_id,
@@ -39,6 +35,52 @@ from auth import autenticar_usuario, registrar_novo_usuario
 
 def register_routes(app):
     """Registra todas as rotas na aplicação"""
+
+    ADMIN_ACCESS_KEYS = {
+        "/vendedores": "admin_access_vendedores",
+        "/relatorios": "admin_access_relatorios",
+    }
+
+    def _normalize_admin_next(path):
+        if path in ADMIN_ACCESS_KEYS:
+            return path
+        return "/"
+
+    def _requires_admin_access(next_path):
+        if get_total_users() == 0:
+            return None
+
+        if "usuario" not in session:
+            return redirect("/login")
+
+        access_key = ADMIN_ACCESS_KEYS.get(next_path)
+        if access_key and not session.get(access_key):
+            return redirect(f"/admin/access?next={next_path}")
+
+        return None
+
+    @app.before_request
+    def _clear_admin_access_when_leaving():
+        if "usuario" not in session:
+            return None
+
+        path = request.path or ""
+        keep_access_prefixes = (
+            "/vendedores",
+            "/relatorios",
+            "/api/dashboard",
+            "/api/vendas",
+            "/admin/access",
+            "/register",
+            "/static",
+        )
+
+        if path.startswith(keep_access_prefixes):
+            return None
+
+        session.pop("admin_access_vendedores", None)
+        session.pop("admin_access_relatorios", None)
+        return None
     
     # -------- AUTENTICAÇÃO --------
 
@@ -79,6 +121,9 @@ def register_routes(app):
 
     @app.route("/register", methods=["POST"])
     def register():
+        if get_total_users() > 0 and not session.get("admin_access_vendedores"):
+            return jsonify({"status": False, "message": "Acesso negado. Informe senha de admin em Vendedores."}), 403
+
         if request.is_json:
             data = request.get_json()
             usuario = data.get("usuario")
@@ -111,13 +156,40 @@ def register_routes(app):
         return redirect("/login")
 
 
+    @app.route("/admin/access", methods=["GET", "POST"])
+    def admin_access():
+        if "usuario" not in session:
+            return redirect("/login")
+
+        if request.method == "POST":
+            next_path = _normalize_admin_next(request.form.get("next"))
+            senha = (request.form.get("senha") or "").strip()
+
+            if not verify_admin_password(senha):
+                return render_template(
+                    "admin_access.html",
+                    next_path=next_path,
+                    error="Senha de admin invalida."
+                )
+
+            access_key = ADMIN_ACCESS_KEYS.get(next_path)
+            if not access_key:
+                return redirect("/")
+
+            session[access_key] = True
+            return redirect(next_path)
+
+        next_path = _normalize_admin_next(request.args.get("next"))
+        return render_template("admin_access.html", next_path=next_path, error=None)
+
+
     # -------- PÁGINAS PRINCIPAIS --------
     @app.route("/")
     def home():
         # Redirecionar para login se não autenticado
         if 'usuario' not in session:
             return redirect("/login")
-        return render_template("base.html")
+        return redirect("/vendas")
     # Vendas
     @app.route("/vendas")
     def vendas():
@@ -151,14 +223,20 @@ def register_routes(app):
     # Relat??rios
     @app.route("/relatorios")
     def relatorios():
-        if "usuario" not in session:
-            return redirect("/login")
+        guard = _requires_admin_access("/relatorios")
+        if guard:
+            return guard
         return render_template("relatorios.html")
 
     # -------- API VENDAS / DASHBOARD --------
 
     @app.route("/api/vendas", methods=["GET", "POST"])
     def api_vendas():
+        if request.method == "GET":
+            guard = _requires_admin_access("/relatorios")
+            if guard:
+                return jsonify({"erro": "Acesso negado"}), 403
+
         if request.method == "POST":
             if not request.is_json:
                 return jsonify({"erro": "Payload invÃ¡lido"}), 400
@@ -179,6 +257,10 @@ def register_routes(app):
 
     @app.route("/api/vendas/<int:venda_id>")
     def api_venda_detalhe(venda_id):
+        guard = _requires_admin_access("/relatorios")
+        if guard:
+            return jsonify({"erro": "Acesso negado"}), 403
+
         venda = get_venda_by_id(venda_id)
         if not venda:
             return jsonify({"erro": "Venda nÃ£o encontrada"}), 404
@@ -187,12 +269,20 @@ def register_routes(app):
 
     @app.route("/api/vendas/<int:venda_id>/cancelar", methods=["PATCH"])
     def api_venda_cancelar(venda_id):
+        guard = _requires_admin_access("/relatorios")
+        if guard:
+            return jsonify({"erro": "Acesso negado"}), 403
+
         cancelar_venda(venda_id)
         return jsonify({"ok": True})
 
 
     @app.route("/api/dashboard/resumo")
     def api_dashboard_resumo():
+        guard = _requires_admin_access("/relatorios")
+        if guard:
+            return jsonify({"erro": "Acesso negado"}), 403
+
         data_inicio = request.args.get("data_inicio")
         data_fim = request.args.get("data_fim")
         metodo = request.args.get("metodo")
@@ -201,6 +291,10 @@ def register_routes(app):
 
     @app.route("/api/dashboard/por-hora")
     def api_dashboard_por_hora():
+        guard = _requires_admin_access("/relatorios")
+        if guard:
+            return jsonify({"erro": "Acesso negado"}), 403
+
         data_inicio = request.args.get("data_inicio")
         data_fim = request.args.get("data_fim")
         metodo = request.args.get("metodo")
@@ -209,6 +303,10 @@ def register_routes(app):
 
     @app.route("/api/dashboard/por-vendedor")
     def api_dashboard_por_vendedor():
+        guard = _requires_admin_access("/relatorios")
+        if guard:
+            return jsonify({"erro": "Acesso negado"}), 403
+
         data_inicio = request.args.get("data_inicio")
         data_fim = request.args.get("data_fim")
         metodo = request.args.get("metodo")
@@ -357,6 +455,10 @@ def register_routes(app):
     # Lista/busca de vendedores
     @app.route("/vendedores")
     def list_sellers():
+        guard = _requires_admin_access("/vendedores")
+        if guard:
+            return guard
+
         # Support optional edit via ?id=<seller_id> so the form can be shown on the same page
         seller_id = request.args.get("id")
         seller = None
@@ -375,6 +477,9 @@ def register_routes(app):
     # Cadastro de vendedores
     @app.route("/vendedores/novo", methods=["GET", "POST"])
     def novo_vendedor():
+        guard = _requires_admin_access("/vendedores")
+        if guard:
+            return guard
 
         if request.method == "POST":
             action = request.form.get("action")
@@ -412,5 +517,9 @@ def register_routes(app):
     # Remover vendedor
     @app.route("/vendedores/remover/<int:seller_id>")
     def remover_vendedor(seller_id):
+        guard = _requires_admin_access("/vendedores")
+        if guard:
+            return guard
+
         delete_seller(seller_id)
         return redirect("/vendedores")

@@ -65,6 +65,39 @@
 
 </div>
 
+<div id="new-user" class="form-box left-form">
+    <h3>Cadastrar Usuário</h3>
+    <div id="user-register-alert" class="user-register-alert"></div>
+
+    <form id="userRegisterForm">
+        <input
+            type="text"
+            id="registerUser"
+            name="usuario"
+            placeholder="Novo usuário"
+            required
+        >
+
+        <input
+            type="password"
+            id="registerPass"
+            name="senha"
+            placeholder="Senha"
+            required
+        >
+
+        <input
+            type="password"
+            id="registerPassConfirm"
+            name="senha_confirm"
+            placeholder="Confirmar senha"
+            required
+        >
+
+        <button type="submit">Cadastrar Usuário</button>
+    </form>
+</div>
+
 <table class="products-table">
 
     <tr>
@@ -101,8 +134,53 @@
 
 </table>
 
-    </main>
+{% endblock %}
 
-</div>
+{% block extra_js %}
+<script>
+    function showUserRegisterAlert(message, type) {
+        const alertBox = document.getElementById('user-register-alert');
+        alertBox.textContent = message;
+        alertBox.className = `user-register-alert show ${type}`;
 
+        setTimeout(() => {
+            alertBox.classList.remove('show');
+        }, 5000);
+    }
+
+    async function handleUserRegister(event) {
+        event.preventDefault();
+
+        const usuario = document.getElementById('registerUser').value.trim();
+        const senha = document.getElementById('registerPass').value;
+        const senhaConfirm = document.getElementById('registerPassConfirm').value;
+
+        if (senha !== senhaConfirm) {
+            showUserRegisterAlert('As senhas não coincidem.', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ usuario, senha })
+            });
+
+            const data = await response.json();
+            if (data.status) {
+                showUserRegisterAlert(`${data.message} (${data.cargo})`, 'success');
+                document.getElementById('userRegisterForm').reset();
+            } else {
+                showUserRegisterAlert(data.message, 'error');
+            }
+        } catch (error) {
+            showUserRegisterAlert('Erro ao conectar com o servidor.', 'error');
+        }
+    }
+
+    document.getElementById('userRegisterForm').addEventListener('submit', handleUserRegister);
+</script>
 {% endblock %}
